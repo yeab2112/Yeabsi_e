@@ -3,16 +3,18 @@ import { ShopContext } from '../context/ShopContext';
 import Title from './Title';
 
 function BestSeller() {
-  const { products } = useContext(ShopContext);
+  const { products, getProducts } = useContext(ShopContext);
   const [bestSellers, setBestSellers] = useState([]);
 
   useEffect(() => {
-    if (products) {
+    if (Array.isArray(products)) {
       const filteredBestSellers = products.filter((item) => item.bestSeller);
       setBestSellers(filteredBestSellers.slice(0, 5)); // Limit to top 5 best sellers
-    }
-  }, [products]);
 
+    }
+    getProducts()
+  }, [products]);
+  
   return (
     <div className="p-6 bg-gray-100">
       <Title title1="Best" title2="Sellers" />
@@ -27,7 +29,7 @@ function BestSeller() {
               key={product.id}
             >
               <img
-                src={product.image || 'fallback-image.jpg'}
+                src={product.images && product.images.length > 0 ? product.images[0] : 'fallback-image.jpg'} // Fallback image if no images available
                 alt={product.name}
                 className="w-full h-48 object-cover rounded-t-lg"
               />

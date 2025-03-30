@@ -1,161 +1,139 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { ShopContext } from '../context/ShopContext';
 import { useParams } from 'react-router-dom';
+import axios from 'axios'; // Import axios to make API requests
 import { assets } from '../asset/asset';
 import RelatedProduct from '../component/Relatedproduct';
+import React, { useContext, useState, useEffect } from 'react';
+import { ShopContext } from '../context/ShopContext';
 
 const Product = () => {
-  const { products, addToCart } = useContext(ShopContext); // Context function to add to cart
-  const { productId } = useParams();
+  const { productId } = useParams(); // Get the product ID from the URL
   const [product, setProduct] = useState(null);
+  const { products, addToCart, currency } = useContext(ShopContext);
   const [currentImage, setCurrentImage] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(''); // For size selection
+  const [selectedSize, setSelectedSize] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (products && products.length > 0) {
-      const selectedProduct = products.find((item) => item.id === productId);
-      if (selectedProduct) {
-        setProduct(selectedProduct);
-        setCurrentImage(selectedProduct.image || null);
+    
+
+    const fetchProduct = async () => {
+      try {
+        setLoading(true); // Start loading
+        // Fetch the specific product details
+        const response = await axios.get(`http://localhost:5000/api/product/detail_products/${productId}`);
+        if (response.data) {
+          // Parse the sizes if it's a string
+          const sizes = response.data.sizes ? JSON.parse(response.data.sizes) : [];
+          setProduct({
+            ...response.data,
+            sizes, // Ensure sizes is an array now
+          });
+          setCurrentImage(response.data.images[0] || null);  // Set the first image as default
+        }
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+        setError('Product not found');
+      } finally {
+        setLoading(false); // Stop loading
       }
-    }
-  }, [products, productId]);
+    };
 
-  if (!product) return <div>Loading...</div>;
-
+    fetchProduct(); // Fetch the current product details
+  }, [productId]);
   const handleAddToCart = () => {
     if (!selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError('');
-    addToCart(product.id, selectedSize); // Passing product ID and selected size
+    addToCart(product._id, selectedSize); // Passing product ID and selected size
   };
 
   const rating = 4; // Example rating
   const totalStars = 5;
 
+
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (!product) return <div className="text-center py-8">{error || 'Product not found'}</div>;
+
   return (
-    <div className="product-detail-container p-6 flex flex-col gap-8">
-      {/* Top Section: Images and Product Details */}
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Thumbnails */}
-        <div className="thumbnails flex flex-col items-start w-1/5 gap-4">
-          {product.image && (
+    <div className="product-detail-container p-6 flex flex-col gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+        {/* First Column: Thumbnails */}
+        <div className="thumbnails flex flex-col gap-4">
+          {product.images?.map((img, index) => (
             <img
-              src={product.image}
-              alt="Product thumbnail"
-              onClick={() => setCurrentImage(product.image)}
+              key={index}
+              src={img}
+              alt={`Product thumbnail ${index + 1}`}
+              onClick={() => setCurrentImage(img)}
               className={`w-20 h-20 cursor-pointer rounded-md shadow-md ${
-                currentImage === product.image ? 'border-2 border-blue-500' : ''
+                currentImage === img ? 'border-2 border-blue-500' : ''
               }`}
             />
-          )}
+          ))}
         </div>
 
-        {/* Main Content */}
-        <div className="main-content flex flex-col md:flex-row items-stretch gap-8 w-4/5">
-          {/* Main Image */}
-          <div className="main-image flex justify-center items-center w-1/2 h-full">
-            <img
-              src={currentImage || 'placeholder-image-url.jpg'}
-              alt={product.name}
-              className="max-w-md w-full h-full object-contain rounded-lg shadow-md"
-            />
+        {/* Second Column: Main Image */}
+        <div className="main-image flex justify-center items-center">
+          <img
+            src={currentImage || product.image || assets.placeholder}
+            alt={product.name}
+            className="max-w-md w-full h-auto max-h-[500px] object-contain rounded-lg shadow-md"
+          />
+        </div>
+
+        {/* Third Column: Product Details */}
+        <div className="details-section flex flex-col gap-4">
+          <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+
+          {/* Stars/Rating */}
+          <div className="rating flex items-center mb-4">
+            <span className="text-yellow-500">⭐⭐⭐⭐☆</span>
+            {/* Replace above with dynamic rating logic if needed */}
           </div>
 
-          {/* Product Details */}
-          <div className="details-section flex flex-col w-1/2">
-            <div>
-              <h1 className="text-3xl font-bold mb-4 text-left">{product.name}</h1>
+          {/* Price */}
+          <p className="text-xl font-semibold text-gray-800">{`$${product.price}`}</p>
 
-              {/* Star Rating */}
-              <div className="flex items-center mb-4">
-                {Array.from({ length: totalStars }).map((_, index) => (
-                  <img
-                    key={index}
-                    src={rating > index ? assets.star : assets.dull_star}
-                    alt={`star ${index + 1}`}
-                    className="w-6 h-6"
-                  />
-                ))}
-                <p className="ml-2 text-sm text-gray-600">(122)</p>
-              </div>
+          {/* Description */}
+          <p className="text-gray-600 mb-4">{product.description}</p>
 
-              <p className="text-gray-600 mb-4">
-                {product.description || 'No description available.'}
-              </p>
-              <p className="text-xl font-semibold text-green-600 mb-4">
-                Price: ${product.price}
-              </p>
-
-              {/* Size Selection */}
-              <div className="size-selection mb-4">
-                <label htmlFor="size" className="text-lg font-semibold block mb-2">
-                  Select Size:
-                </label>
-                <select
-                  id="size"
-                  value={selectedSize}
-                  onChange={(e) => setSelectedSize(e.target.value)}
-                  className="p-2 border rounded-md"
-                >
-                  <option value="">Choose a size</option>
-                  {product.sizes?.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-                {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-              </div>
-            </div>
-
-            {/* Add to Cart */}
-            <button
-              onClick={handleAddToCart}
-              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 w-36"
+          {/* Size Selection */}
+          <div className="size-selection mb-4">
+            <label htmlFor="size" className="text-lg font-semibold block mb-2">
+              Select Size:
+            </label>
+            <select
+              id="size"
+              value={selectedSize}
+              onChange={(e) => setSelectedSize(e.target.value)}
+              className="p-2 border rounded-md w-full max-w-xs"
             >
-              Add to Cart
-            </button>
-            <hr className="my-4" />
-            <div>
-              <p>100% Original product</p>
-              <p>Cash on delivery is available for this product</p>
-              <p>Easy return and exchange policy within 7 days</p>
-            </div>
+              <option value="">Choose a size</option>
+              {product.sizes?.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
           </div>
+
+          {/* Add to Cart Button */}
+          <button
+            onClick={handleAddToCart}
+            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 w-36"
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
 
-{/* Description and Review Section */}
-<div className="description-review-section mt-4 flex flex-col md:flex-row gap-4">
-  {/* Reviews */}
-  <div className="flex-1 pr-4">
-    <h2 className="text-lg font-semibold mb-1 text-left inline-block px-3 py-1 bg-white shadow-sm rounded">
-      Reviews (122)
-    </h2>
-    <p className="text-gray-600">122 reviews from verified buyers. Average rating: 4 out of 5 stars.</p>
-  </div>
-
-  {/* Description */}
-  <div className="flex-1 pl-4">
-    <h2 className="text-lg font-semibold mb-1 text-left inline-block px-3 py-1 bg-white shadow-sm rounded">
-      Description
-    </h2>
-    <p className="text-gray-600">
-      
-        This product comes with superior quality, designed for your satisfaction and comfort. Ideal for all seasons and versatile use.
-    </p>
-  </div>
-  </div>
-
-  <RelatedProduct category={product.category} products={products} />
-
-
-
-  </div>
+      {/* Related Products */}
+      <RelatedProduct category={product.category} currentProductId={product._id} products={products} />
+    </div>
   );
 };
 

@@ -1,13 +1,16 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState,useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import { ShopContext } from '../context/ShopContext';
 import Title from '../component/Title';
 
 function Collection() {
-  const { products, search} = useContext(ShopContext);
+  const { products, search,getProducts } = useContext(ShopContext);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortOption, setSortOption] = useState('relavent');
   const [showFilters, setShowFilters] = useState(false);
+  useEffect(() => {
+    getProducts();
+  }, [products]);  // Empty dependency array ensures the effect runs only once when the component mounts
 
   const handleCategoryChange = (category) => {
     setSelectedCategories((prev) =>
@@ -92,15 +95,15 @@ function Collection() {
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <Link
-                key={product.id}
-                to={`/product/${product.id}`} // Navigate to product details by ID
+                key={product._id}
+                to={`/product/${product._id}`} // Navigate to product details by ID
                 className="border p-4 rounded shadow-sm hover:shadow-lg transition-shadow duration-200"
               >
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-48 object-cover rounded"
-                />
+               <img
+                src={product.images && product.images.length > 0 ? product.images[0] : 'fallback-image.jpg'} // Fallback image if no images available
+                alt={product.name}
+                className="w-full h-48 object-cover rounded-t-lg"
+              />
                 <h3 className="font-bold mt-2 text-gray-800">{product.name}</h3>
                 <p className="text-gray-500">{product.category}</p>
                 <p className="font-bold text-blue-600">${product.price}</p>

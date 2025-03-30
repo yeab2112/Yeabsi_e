@@ -1,3 +1,4 @@
+
 import React from 'react';
 import NewsLeterBox from '../component/NewsLeterBox';  // Importing NewsLeterBox component
 import Title from '../component/Title';  // Importing Title component

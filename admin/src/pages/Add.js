@@ -102,8 +102,8 @@ function Add() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Authentication required');
+      const atoken = localStorage.getItem('atoken');
+      if (!atoken) throw new Error('Authentication required');
 
       const formData = new FormData();
       
@@ -124,7 +124,7 @@ function Add() {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${atoken}`,
           // Do not set 'Content-Type' explicitly when using FormData
         },
       });

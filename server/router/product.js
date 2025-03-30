@@ -37,6 +37,6 @@ productRouter.put('/products/:id', authoAdmin, updateProduct);
 productRouter.get('/products/:id', getProductById);
 
 // Get detailed product information by ID (change this to avoid conflicts)
-productRouter.get('/products/:id/details', productDetail);  // Specific route for product details
+productRouter.get('/detail_products/:productId', productDetail);  
 
 export default productRouter;

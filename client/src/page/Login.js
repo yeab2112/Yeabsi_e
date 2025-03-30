@@ -1,10 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // for navigation
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ShopContext } from '../context/ShopContext'; // import ShopContext
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);  // To toggle between login/signup
+  const [formData, setFormData] = useState({
+    name: isLogin ? '' : '',  // Name field is only required for signup
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const toggleForm = () => {
-    setIsLogin(!isLogin);
+  const { token, setToken } = useContext(ShopContext);  // Get the token and setToken function from context
+  const navigate = useNavigate();  // for redirecting after successful login/signup
+
+  // If token exists, redirect to the home page immediately
+  useEffect(() => {
+    if (token) {
+      navigate('/');  // Redirect to home if token is available
+    }
+  }, [token, navigate]);
+
+  // Toggle between login and signup forms
+  const toggleForm = () => setIsLogin(!isLogin);
+
+  // Handle input field changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle login/signup form submission
+  const handleAuthSubmit = async (e, type) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const endpoint = type === 'login' ? '/api/user/login' : '/api/user/signup';
+      const response = await axios.post(`http://localhost:5000${endpoint}`, formData);
+
+      // On success, set the token in context and navigate to home
+      setToken(response.data.token); // Store the token in the global context
+      localStorage.setItem('token', response.data.token);  // Save token in localStorage
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} successful!`);
+      navigate('/');  // Redirect to the home page after success
+    } catch (err) {
+      setError(err.response?.data?.message || 'An error occurred. Please try again.');
+      toast.error(err.response?.data?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -14,103 +63,71 @@ const AuthPage = () => {
           {isLogin ? 'Login' : 'Signup'}
         </h2>
 
-        {isLogin ? (
-          <LoginForm />
-        ) : (
-          <SignupForm />
-        )}
+        <form
+          onSubmit={(e) => handleAuthSubmit(e, isLogin ? 'login' : 'signup')}
+          className="space-y-4"
+        >
+          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
 
-        {/* Toggle link for signup/login */}
-        <div className="text-center mt-4">
+          {!isLogin && (
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          )}
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
           <button
-            onClick={toggleForm} // Ensure toggle happens only when button is clicked
-            className="focus:outline-none"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-70 disabled:cursor-not-allowed"
           >
+            {loading ? (isLogin ? 'Logging in...' : 'Creating account...') : isLogin ? 'Login' : 'Sign up'}
+          </button>
+        </form>
+
+        <div className="text-center mt-4">
+          <button onClick={toggleForm} className="focus:outline-none">
             {isLogin ? (
               <span>
                 Don't have an account?{' '}
-                <span className="text-blue-500 cursor-pointer hover:underline">
-                  Sign up
-                </span>
+                <span className="text-blue-500 cursor-pointer hover:underline">Sign up</span>
               </span>
             ) : (
               <span>
                 Already have an account?{' '}
-                <span className="text-blue-500 cursor-pointer hover:underline">
-                  Log in
-                </span>
+                <span className="text-blue-500 cursor-pointer hover:underline">Log in</span>
               </span>
             )}
           </button>
         </div>
       </div>
+      <ToastContainer />  {/* Toast notifications */}
     </div>
-  );
-};
-
-const LoginForm = () => {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle login logic here (send login request to backend)
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="email"
-        placeholder="Email"
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <button
-        type="submit"
-        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-      >
-        Login
-      </button>
-    </form>
-  );
-};
-
-const SignupForm = () => {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle signup logic here (send signup request to backend)
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="text"
-        placeholder="Name"
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <button
-        type="submit"
-        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-      >
-        Sign up
-      </button>
-    </form>
   );
 };
 

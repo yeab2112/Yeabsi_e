@@ -70,14 +70,14 @@ const UserLogin = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { _id: user._id },
-      process.env.ACCESS_TOKEN_SECRET, { expiresIn: "3d" }
+      process.env.JWT_SECRET, { expiresIn: "3d" }
     );
 
     // Remove password from user object for response
     const userA = { ...user._doc, password: undefined };
 
     // Send success response with token and user info
-    res.json({ success: true, token, userA,message:"" });
+    res.json({ success: true, token, userA,message:"Login successful!" });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -96,7 +96,7 @@ const AdminLogin = async (req, res) => {
   }
 
   // Ensure environment variables are loaded
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD || !process.env.JWT_SECRET) {
+  if (!process.env.ADMIN_EMAIL || !process.env.JWT_SECRET || !process.env.JWT_SECRET) {
     return res.status(500).json({ error: "Server configuration error" });
   }
 
@@ -104,10 +104,10 @@ const AdminLogin = async (req, res) => {
   if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
     try {
       // Create a token with a payload (admin email and role)
-      const token = jwt.sign({ email, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      const atoken = jwt.sign({ email, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       // Send token in response
-      return res.status(200).json({ success: true, message: "Login successful", token });
+      return res.status(200).json({ success: true, message: "Login successful", atoken });
     } catch (error) {
       console.error("Error generating token:", error);
       return res.status(500).json({ error: "Server error" });
@@ -133,7 +133,7 @@ const Forgetpassword = async (req, res) => {
       return res.status(401).json({ message: 'The email does not exist' });
     }
 
-    const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1d' });
     user.resetToken = token;
     user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
     await user.save();

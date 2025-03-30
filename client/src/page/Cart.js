@@ -3,62 +3,76 @@ import { ShopContext } from "../context/ShopContext";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
 
 function Cart() {
-  const { cart, addToCart, decreaseQuantity, removeFromCart, currency, delivery_fee,naviget } =
-    useContext(ShopContext);
+  const { 
+    cart, 
+    cartTotal,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart,
+    currency, 
+    delivery_fee, 
+    navigate
+  } = useContext(ShopContext);
 
-  // Calculate total price
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Calculate total with delivery
+  const totalWithDelivery = cartTotal + delivery_fee;
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-semibold mb-4">Shopping Cart</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-semibold text-center mb-8">Shopping Cart</h2>
 
       {cart.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <div className="text-center text-gray-500">
+          <p>Your cart is empty.</p>
+        </div>
       ) : (
         <div>
           {/* Cart Items */}
-          <div className="space-y-4">
-            {cart.map((item, index) => (
+          <div className="space-y-6">
+            {cart.map((item) => (
               <div
-                key={index}
-                className="flex items-center justify-between border p-4 rounded-lg shadow-md"
+                key={`${item._id}_${item.size}`}
+                className="flex items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out"
               >
                 {/* Product Image */}
                 <img
-                  src={item.image}
+                  src={item.image || '/placeholder-product.png'}
                   alt={item.name}
-                  className="w-16 h-16 object-cover rounded-lg"
+                  className="w-24 h-24 object-cover rounded-lg border border-gray-200"
                 />
 
                 {/* Product Details */}
-                <div className="flex-1 ml-4">
-                  <h3 className="text-lg font-medium">{item.name}</h3>
-                  <p className="text-gray-600">{currency}{item.price}</p>
+                <div className="flex-1 ml-6">
+                  <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
+                  <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">Size: {item.size}</p>
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-4">
                   <button
-                    onClick={() => decreaseQuantity(item.id, item.size)}
-                    className="bg-gray-300 p-2 rounded-md"
+                    onClick={() => decreaseQuantity(item._id, item.size)}
+                    className="bg-gray-300 hover:bg-gray-400 p-2 rounded-full disabled:opacity-50"
+                    disabled={item.quantity <= 1}
                   >
-                    <FaMinus />
+                    <FaMinus className="text-gray-700" />
                   </button>
-                  <span className="text-lg">{item.quantity}</span>
+                  <span className="text-lg font-semibold min-w-[20px] text-center">
+                    {item.quantity}
+                  </span>
                   <button
-                    onClick={() => addToCart(item.id, item.size)}
-                    className="bg-gray-300 p-2 rounded-md"
+                    onClick={() => increaseQuantity(item._id, item.size)}
+                    className="bg-gray-300 hover:bg-gray-400 p-2 rounded-full"
                   >
-                    <FaPlus />
+                    <FaPlus className="text-gray-700" />
                   </button>
                 </div>
 
                 {/* Remove Item Button */}
                 <button
-                  onClick={() => removeFromCart(item.id, item.size)}
-                  className="text-red-600 p-2"
+                  onClick={() => removeFromCart(item._id, item.size)}
+                  className="text-red-600 hover:text-red-800 p-3 rounded-full hover:bg-red-50"
+                  aria-label="Remove item"
                 >
                   <FaTrash />
                 </button>
@@ -67,19 +81,29 @@ function Cart() {
           </div>
 
           {/* Summary Section */}
-          <div className="mt-6 p-4 border rounded-lg shadow-md">
-            <p className="text-lg font-medium">Subtotal: {currency}{totalPrice.toFixed(2)}</p>
-            <p className="text-gray-600">Delivery Fee: {currency}{delivery_fee.toFixed(2)}</p>
-            <hr className="my-2" />
-            <p className="text-xl font-semibold">
-              Total: {currency}{(totalPrice + delivery_fee).toFixed(2)}
-            </p>
+          <div className="mt-8 p-6 border rounded-lg shadow-lg bg-gray-50">
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">Subtotal:</span>
+              <span className="font-medium">{currency}{cartTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-600">Delivery Fee:</span>
+              <span className="font-medium">{currency}{delivery_fee.toFixed(2)}</span>
+            </div>
+            <hr className="my-3 border-gray-300" />
+            <div className="flex justify-between text-xl">
+              <span className="font-semibold">Total:</span>
+              <span className="font-bold">
+                {currency}{totalWithDelivery.toFixed(2)}
+              </span>
+            </div>
             <button
-      onClick={() => naviget('/place-order')}  
-      className="mt-4 bg-blue-500 text-white p-2 rounded-md"
-    >
-      Proceed to Checkout
-    </button>           
+              onClick={() => navigate('/place-order')}
+              className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
+              disabled={cart.length === 0}
+            >
+              Proceed to Checkout
+            </button>
           </div>
         </div>
       )}

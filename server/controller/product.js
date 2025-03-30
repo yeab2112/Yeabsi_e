@@ -175,7 +175,7 @@ const getProductById = async (req, res) => {
 
 // Get product details (used for details page)
 const productDetail = async (req, res) => {
-  const productId = req.params.id;
+  const productId = req.params.productId;
   const product = await Product.findById(productId);
 
   if (product) {

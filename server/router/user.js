@@ -4,7 +4,6 @@ import { Contacts, Contactt } from "../controller/contact.js"
 import { UserLogin,UserRegister,AdminLogin } from "../controller/user.js"
 import { Auth } from "../controller/user.js"
 import { Shipping } from "../controller/shipping.js"
-import { Carts } from "../controller/cart.js"
 import { OrderSummary,Delete } from "../controller/orderSummry.js"
 import { initiatePayment, verifyPayment } from "../controller/paymentController.js";
 const userRouter=express.Router()
@@ -47,11 +46,10 @@ userRouter.post('/register', [
 
 
 userRouter.post('/login', UserLogin)
-userRouter.post('/login', UserRegister)
+userRouter.post('/signup', UserRegister)
 userRouter.post('/admin_login', AdminLogin)
 
 userRouter.get('/contact', Contactt);  
-userRouter.post('/cart',Carts)
 userRouter.post('/shipping',Shipping)
 
 userRouter.get('/orderSummry',OrderSummary)

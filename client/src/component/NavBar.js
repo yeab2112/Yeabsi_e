@@ -13,7 +13,7 @@ function NavBar() {
 
   // Accessing context values
   const { setShowSearch, cart } = useContext(ShopContext); // Adding cart to display its length
-
+  const { token, setToken } = useContext(ShopContext);  // Get the token and setToken function from context
   const handleLogout = () => {
     MySwal.fire({
       title: "Are you sure?",
@@ -26,7 +26,8 @@ function NavBar() {
     }).then((result) => {
       if (result.isConfirmed) {
         localStorage.removeItem("token");
-        navigate("/");
+        setToken("")
+        navigate("/login");
       }
     });
   };
@@ -146,7 +147,7 @@ function NavBar() {
           </div>
 
           {/* Cart Icon */}
-          <Link to="/ccarts" className="relative">
+          <Link to="/cart" className="relative">
             <img src={assets.cart} alt="Cart Icon" className="h-6 w-6 cursor-pointer" />
             {/* Dynamic Cart Length */}
             <p className="absolute -top-2 -right-2 bg-black text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
