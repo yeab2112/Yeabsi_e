@@ -5,6 +5,7 @@ import productRouter from './router/product.js';
 import './config/db.js'; // Ensures the DB connection is established
 import dotenv from 'dotenv';
 import  cartRoutes from "./router/cartRout.js"
+import orderRoutes from './router/order.js';
 dotenv.config(); // Load environment variables
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(express.json());  // No need for bodyParser if using express.json
 app.use('/api/user', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/cart', cartRoutes); // This creates /api/cart/update/:productId
+app.use('/api/orders', orderRoutes);
 
 // Set up port with fallback
 const port = process.env.PORT || 3000;

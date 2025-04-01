@@ -1,8 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { ShopContext } from "../context/ShopContext";
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function PlaceOrder() {
-  const { cart, currency, delivery_fee,navigate } = useContext(ShopContext);
+  const { cart, currency, delivery_fee, navigate, token ,setCart} = useContext(ShopContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for handling delivery information
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -33,23 +37,68 @@ function PlaceOrder() {
   const finalTotal = totalPrice + delivery_fee;
 
   // Handle order confirmation
-  const handleOrderConfirmation = () => {
+  const handleOrderConfirmation = async () => {
     if (!paymentMethod) {
-      alert("Please select a payment method.");
+      toast.error("Please select a payment method.");
       return;
     }
-    
-    // Save the order details to localStorage
-    const orderDetails = {
-      deliveryInfo,
-      paymentMethod,
-      cart, // Store cart items as well to display in the confirmation
-    };
-    
-    localStorage.setItem('orderDetails', JSON.stringify(orderDetails)); // Save to localStorage
 
-    // Redirect to the order confirmation page
-    navigate('/order-confirmation');
+    if (!token) {
+      toast.error("Please login to place an order.");
+      navigate('/login');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const orderData = {
+        deliveryInfo,
+        paymentMethod,
+        items: cart.map(item => ({
+          productId: item._id,
+          size: item.size,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          image: item.image
+        })),
+        subtotal: totalPrice,
+        deliveryFee: delivery_fee,
+        total: finalTotal,
+        status: 'pending'
+      };
+
+      const response = await axios.post(
+        'http://localhost:5000/api/orders',
+        orderData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Order placed successfully!');
+        navigate('/order-confirmation', { 
+          state: { 
+            orderId: response.data.order._id,
+            orderDetails: response.data.order
+          } 
+        });
+        //  setCart({})
+
+      } else {
+        throw new Error(response.data.message || 'Failed to place order');
+      }
+    } catch (error) {
+      console.error('Order placement error:', error);
+      toast.error(error.response?.data?.message || 'Failed to place order');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,6 +119,7 @@ function PlaceOrder() {
                 value={deliveryInfo.firstName}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
               <input
                 type="text"
@@ -78,6 +128,7 @@ function PlaceOrder() {
                 value={deliveryInfo.lastName}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
 
@@ -90,6 +141,7 @@ function PlaceOrder() {
                 value={deliveryInfo.email}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
 
@@ -102,6 +154,7 @@ function PlaceOrder() {
                 value={deliveryInfo.address}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
 
@@ -114,6 +167,7 @@ function PlaceOrder() {
                 value={deliveryInfo.city}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
               <input
                 type="text"
@@ -122,6 +176,7 @@ function PlaceOrder() {
                 value={deliveryInfo.state}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
 
@@ -134,6 +189,7 @@ function PlaceOrder() {
                 value={deliveryInfo.zipCode}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
               <input
                 type="text"
@@ -142,18 +198,20 @@ function PlaceOrder() {
                 value={deliveryInfo.country}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
 
             {/* Phone */}
             <div className="mb-4">
               <input
-                type="text"
+                type="tel"
                 name="phone"
                 placeholder="Phone Number"
                 value={deliveryInfo.phone}
                 onChange={handleInputChange}
                 className="border p-2 w-full rounded-md"
+                required
               />
             </div>
           </div>
@@ -167,7 +225,7 @@ function PlaceOrder() {
           <div className="space-y-4 mb-6">
             {cart.map((item, index) => (
               <div key={index} className="flex justify-between mb-2">
-                <span>{item.name} (x{item.quantity})</span>
+                <span>{item.name} (Size: {item.size}, Qty: {item.quantity})</span>
                 <span>{currency}{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
@@ -210,16 +268,19 @@ function PlaceOrder() {
           {/* Action Buttons */}
           <div className="flex justify-between mt-6">
             <button
-              onClick={() => navigate('/cart')} // Go back to the cart page
+              onClick={() => navigate('/cart')}
               className="bg-gray-500 text-white p-2 rounded-md w-1/3"
             >
               Go Back
             </button>
             <button
-              onClick={handleOrderConfirmation} // Confirm the order and handle order placement
-              className="bg-blue-500 text-white p-2 rounded-md w-1/3"
+              onClick={handleOrderConfirmation}
+              disabled={isSubmitting}
+              className={`bg-blue-500 text-white p-2 rounded-md w-1/3 ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              Confirm Order
+              {isSubmitting ? 'Processing...' : 'Confirm Order'}
             </button>
           </div>
         </div>

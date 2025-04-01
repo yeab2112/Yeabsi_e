@@ -1,11 +1,7 @@
 import express from "express"
 import { Forgetpassword, Reset } from "../controller/user.js"
-import { Contacts, Contactt } from "../controller/contact.js"
 import { UserLogin,UserRegister,AdminLogin } from "../controller/user.js"
 import { Auth } from "../controller/user.js"
-import { Shipping } from "../controller/shipping.js"
-import { OrderSummary,Delete } from "../controller/orderSummry.js"
-import { initiatePayment, verifyPayment } from "../controller/paymentController.js";
 const userRouter=express.Router()
 
 import { body, validationResult } from 'express-validator';
@@ -41,7 +37,6 @@ userRouter.post('/register', [
 
 
 
- userRouter.post('/contact',Contacts)
 //  product
 
 
@@ -49,21 +44,14 @@ userRouter.post('/login', UserLogin)
 userRouter.post('/signup', UserRegister)
 userRouter.post('/admin_login', AdminLogin)
 
-userRouter.get('/contact', Contactt);  
-userRouter.post('/shipping',Shipping)
-
-userRouter.get('/orderSummry',OrderSummary)
 
 
-userRouter.delete('/orders/:id', Delete);
+
+
 
 userRouter.post('/forget-password',Forgetpassword)
 userRouter.post('/reset-password/:token',Reset)
-// Route to initiate payment
-userRouter.post('/initiate', initiatePayment);
 
-// Route to verify payment
-userRouter.post('/verify/:txRef', verifyPayment);  
  
 
 export default userRouter

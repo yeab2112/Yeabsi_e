@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { createContext, useState, useEffect,useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -34,14 +34,15 @@ function ShopContextProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []); // Empty dependency array since it doesn't depend on any props or state
-  
+  }, []);
+
+  // Fetch cart from API
   const fetchCart = useCallback(async () => {
     if (!token) {
       setCart([]);
       return;
     }
-  
+
     try {
       const response = await axios.get('http://localhost:5000/api/cart/get', {
         headers: { Authorization: `Bearer ${token}` }
@@ -65,19 +66,33 @@ function ShopContextProvider({ children }) {
       toast.error(error.response?.data?.message || 'Failed to load cart');
       setCart([]);
     }
-  }, [token]); // Only depends on token
-  
+  }, [token]);
+
+  // Calculate cart totals safely
+  const cartTotal = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const price = Number(item?.price) || 0;
+      const quantity = Number(item?.quantity) || 0;
+      return sum + (price * quantity);
+    }, 0);
+  }, [cart]);
+
+  const cartCount = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const quantity = Number(item?.quantity) || 0;
+      return sum + quantity;
+    }, 0);
+  }, [cart]);
+
+  // Initialize data on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      await getProducts();
-      if (token) {
-        await fetchCart();
-      }
-    };
-    
-    fetchData();
-  }, [token, getProducts, fetchCart]); 
-  // Add to cart
+    getProducts();
+    if (token) {
+      fetchCart();
+    }
+  }, [getProducts, fetchCart, token]);
+
+  // Add to cart function
   const addToCart = async (productId, size) => {
     if (!token) {
       toast.error('Please login to add items to cart');
@@ -158,7 +173,6 @@ function ShopContextProvider({ children }) {
     const normalizedSize = size.trim().toUpperCase();
   
     try {
-      // Convert to number and validate
       const quantityNumber = Number(newQuantity);
       if (isNaN(quantityNumber)) {
         throw new Error('Invalid quantity value');
@@ -182,25 +196,20 @@ function ShopContextProvider({ children }) {
       if (response.data.success) {
         setCart(prevCart => {
           const cartKey = `${productId}_${normalizedSize}`;
-          const itemIndex = prevCart.findIndex(item => item.cartKey === cartKey);
           
-          // If removing item
           if (quantityNumber <= 0) {
             return prevCart.filter(item => item.cartKey !== cartKey);
           }
   
-          // If item exists, update it
-          if (itemIndex >= 0) {
-            const updatedCart = [...prevCart];
-            updatedCart[itemIndex] = {
-              ...updatedCart[itemIndex],
-              quantity: quantityNumber
-            };
-            return updatedCart;
-          }
-          
-          // If new item (shouldn't happen with update)
-          return prevCart;
+          return prevCart.map(item => {
+            if (item.cartKey === cartKey) {
+              return { 
+                ...item, 
+                quantity: quantityNumber 
+              };
+            }
+            return item;
+          });
         });
   
         toast.update(toastId, {
@@ -227,8 +236,8 @@ function ShopContextProvider({ children }) {
       return false;
     }
   };
-  
-  // Improved action handlers
+
+  // Action handlers
   const increaseQuantity = async (productId, size) => {
     const item = cart.find(item => item._id === productId && item.size === size);
     if (!item) return;
@@ -251,19 +260,6 @@ function ShopContextProvider({ children }) {
   const removeFromCart = async (productId, size) => {
     await updateCartItem(productId, size, 0);
   };
-  
-  // More reliable cart calculations
-  const cartTotal = cart.reduce((sum, item) => {
-    const price = Number(item.price) || 0;
-    const quantity = Number(item.quantity) || 0;
-    return sum + (price * quantity);
-  }, 0);
-  
-  const cartCount = cart.reduce((sum, item) => {
-    const quantity = Number(item.quantity) || 0;
-    return sum + quantity;
-  }, 0);
-  
 
   const contextValue = {
     delivery_fee,
@@ -273,6 +269,7 @@ function ShopContextProvider({ children }) {
     setSearch,
     showSearch,
     setShowSearch,
+    setCart,
     cart,
     cartTotal,
     cartCount,
