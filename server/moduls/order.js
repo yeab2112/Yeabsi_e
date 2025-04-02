@@ -1,4 +1,4 @@
-import mongoose  from 'mongoose';
+import mongoose from 'mongoose';
 import './user.js';
 
 const orderItemSchema = new mongoose.Schema({
@@ -27,46 +27,24 @@ const orderItemSchema = new mongoose.Schema({
   },
   image: {
     type: String
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending'
   }
 });
 
 const deliveryInfoSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true
-  },
-  lastName: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true
-  },
-  address: {
-    type: String,
-    required: true
-  },
-  city: {
-    type: String,
-    required: true
-  },
-  state: {
-    type: String,
-    required: true
-  },
-  zipCode: {
-    type: String,
-    required: true
-  },
-  country: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: String,
-    required: true
-  }
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zipCode: { type: String, required: true },
+  country: { type: String, required: true },
+  phone: { type: String, required: true }
 });
 
 const orderSchema = new mongoose.Schema({
@@ -90,31 +68,15 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
   items: [orderItemSchema],
-  subtotal: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  deliveryFee: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  total: {
-    type: Number,
-    required: true,
-    min: 0
-  },
+  subtotal: { type: Number, required: true, min: 0 },
+  deliveryFee: { type: Number, required: true, min: 0 },
+  total: { type: Number, required: true, min: 0 },
   status: {
     type: String,
     enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
-});
+}, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);
-export {Order}
+export default Order;

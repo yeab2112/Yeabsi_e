@@ -6,6 +6,8 @@ import './config/db.js'; // Ensures the DB connection is established
 import dotenv from 'dotenv';
 import  cartRoutes from "./router/cartRout.js"
 import orderRoutes from './router/order.js';
+import paymentRoutes from './router/paymentRoutes.js';
+
 dotenv.config(); // Load environment variables
 
 const app = express();
@@ -26,6 +28,7 @@ app.use('/api/user', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/cart', cartRoutes); // This creates /api/cart/update/:productId
 app.use('/api/orders', orderRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Set up port with fallback
 const port = process.env.PORT || 3000;

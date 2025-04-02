@@ -1,4 +1,4 @@
-import { Order } from "../moduls/order.js";
+import  Order  from "../moduls/order.js";
 import { UserModel } from "../moduls/user.js";
 // Create a new order
  const createOrder = async (req, res) => {
@@ -48,16 +48,30 @@ import { UserModel } from "../moduls/user.js";
   }
 };
 
-// Get orders for authenticated user
- const getUserOrders = async (req, res) => {
+// Get orders for authenticated use
+const getUserOrders = async (req, res) => {
   try {
     const userId = req.user._id;
+    
     const orders = await Order.find({ user: userId })
       .sort({ createdAt: -1 })
-      .populate('User', 'name email');
+      .populate('user', 'name email')
+      .populate({
+        path: 'items.productId',
+        select: 'name price images'
+      });
+
+    if (!orders || orders.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No orders found',
+        orders: []
+      });
+    }
 
     res.status(200).json({
       success: true,
+      count: orders.length,
       orders
     });
   } catch (error) {
@@ -70,38 +84,44 @@ import { UserModel } from "../moduls/user.js";
   }
 };
 
-// Get order by ID
- const getOrderById = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate('user', 'name email');
+const getAllOrders = (async (req, res) => {
+  const orders = await Order.find({})
+    .populate('user', 'id name email')
+    .sort({ createdAt: -1 });
+  
+  res.json({ success: true, orders });
+});
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
-    }
-
-    // Verify order belongs to the requesting user or admin
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to view this order'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      order
-    });
-  } catch (error) {
-    console.error('Error fetching order:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch order',
-      error: error.message
-    });
+const updateOrderItemStatus = (async (req, res) => {
+  const { productId, size, status } = req.body;
+  
+  const order = await Order.findById(req.params.orderId);
+  
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
   }
-};
-export { createOrder,getUserOrders,getOrderById}
+  
+  // Find and update the specific item
+  const itemIndex = order.items.findIndex(
+    item => item._id.toString() === productId && item.size === size
+  );
+  
+  if (itemIndex === -1) {
+    res.status(404);
+    throw new Error('Order item not found');
+  }
+  
+  order.items[itemIndex].status = status;
+  const updatedOrder = await order.save();
+  
+  res.json({ 
+    success: true, 
+    order: updatedOrder,
+    message: 'Item status updated successfully'
+  });
+});
+
+
+export { createOrder,getUserOrders, getAllOrders,updateOrderItemStatus}
+

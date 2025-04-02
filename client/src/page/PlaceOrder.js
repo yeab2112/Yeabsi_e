@@ -5,8 +5,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function PlaceOrder() {
-  const { cart, currency, delivery_fee, navigate, token ,setCart} = useContext(ShopContext);
+  const { cart, currency, delivery_fee, navigate, token, setCart } = useContext(ShopContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // State for handling delivery information
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -35,6 +36,46 @@ function PlaceOrder() {
   
   // Final total price (subtotal + delivery fee)
   const finalTotal = totalPrice + delivery_fee;
+
+  // Function to initiate Chapa payment
+  const initiateChapaPayment = async (orderId) => {
+    setIsProcessingPayment(true);
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/api/payment/chapa',
+        {
+          amount: finalTotal,
+          currency: 'ETB', // or your preferred currency
+          email: deliveryInfo.email,
+          first_name: deliveryInfo.firstName,
+          last_name: deliveryInfo.lastName,
+          tx_ref: orderId, // using orderId as reference
+          callback_url: `${window.location.origin}/order-confirmation/${orderId}`,
+          return_url: `${window.location.origin}/order-confirmation/${orderId}`,
+          meta: {
+            orderId: orderId
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.url) {
+        // Redirect to Chapa payment page
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('Payment initiation failed');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error(error.response?.data?.message || 'Payment initiation failed');
+      setIsProcessingPayment(false);
+    }
+  };
 
   // Handle order confirmation
   const handleOrderConfirmation = async () => {
@@ -66,7 +107,7 @@ function PlaceOrder() {
         subtotal: totalPrice,
         deliveryFee: delivery_fee,
         total: finalTotal,
-        status: 'pending'
+        status: paymentMethod === 'Cash on Delivery' ? 'pending' : 'payment_pending'
       };
 
       const response = await axios.post(
@@ -81,15 +122,19 @@ function PlaceOrder() {
       );
 
       if (response.data.success) {
-        toast.success('Order placed successfully!');
-        navigate('/order-confirmation', { 
-          state: { 
-            orderId: response.data.order._id,
-            orderDetails: response.data.order
-          } 
-        });
-        //  setCart({})
-
+        if (paymentMethod === 'Cash on Delivery') {
+          toast.success('Order placed successfully!');
+          navigate('/order-confirmation', { 
+            state: { 
+              orderId: response.data.order._id,
+              orderDetails: response.data.order
+            } 
+          });
+          setCart([]);
+        } else if (paymentMethod === 'Online Payment') {
+          // Initiate Chapa payment
+          await initiateChapaPayment(response.data.order._id);
+        }
       } else {
         throw new Error(response.data.message || 'Failed to place order');
       }
@@ -97,7 +142,9 @@ function PlaceOrder() {
       console.error('Order placement error:', error);
       toast.error(error.response?.data?.message || 'Failed to place order');
     } finally {
-      setIsSubmitting(false);
+      if (paymentMethod !== 'Online Payment') {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -263,6 +310,11 @@ function PlaceOrder() {
                 Online Payment
               </button>
             </div>
+            {paymentMethod === 'Online Payment' && (
+              <div className="mt-2 text-sm text-gray-600">
+                You will be redirected to Chapa payment gateway to complete your payment.
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -275,12 +327,13 @@ function PlaceOrder() {
             </button>
             <button
               onClick={handleOrderConfirmation}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isProcessingPayment}
               className={`bg-blue-500 text-white p-2 rounded-md w-1/3 ${
-                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                isSubmitting || isProcessingPayment ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {isSubmitting ? 'Processing...' : 'Confirm Order'}
+              {isProcessingPayment ? 'Redirecting to Payment...' : 
+               isSubmitting ? 'Processing...' : 'Confirm Order'}
             </button>
           </div>
         </div>

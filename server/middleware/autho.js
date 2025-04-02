@@ -1,25 +1,71 @@
 import jwt from 'jsonwebtoken';
 
 const authoAdmin = async (req, res, next) => {
+  // 1. Check Authorization header exists and is properly formatted
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ 
+      success: false, 
+      message: "Authorization header missing or malformed" 
+    });
+  }
+
+  // 2. Extract atoken (admin token)
+  const atoken = authHeader.split(' ')[1];
+  if (!atoken) {
+    return res.status(401).json({ 
+      success: false, 
+      message: "No admin token provided" 
+    });
+  }
+
   try {
-    const authHeader = req.headers.authorization;
-    const atoken = authHeader && authHeader.split(" ")[1]; // Extract the atoken from the Authorization header
+    // 3. Verify atoken
+    const decoded = jwt.verify(atoken, process.env.JWT_SECRET);
 
-    if (!atoken) {
-      return res.status(401).json({ success: false, message: "Not Authorized, login again" });
+    // 4. Validate atoken payload structure
+    if ( !decoded.role) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid admin token payload: Missing required fields" 
+      });
     }
 
-    const token_decode = jwt.verify(atoken, process.env.JWT_SECRET); // Verify the token using JWT_SECRET
-
-    // Check if the user is an admin
-    if (token_decode.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Access denied" });
+    // 5. Check admin role specifically
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Admin privileges required - Your role: " + decoded.role 
+      });
     }
 
-    next(); // Proceed if admin
+    // 6. Attach decoded admin user to request
+    req.admin = decoded;  
+    next();
+
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.error('Admin authentication error:', error);
+    
+    // Handle specific JWT errors
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Admin token expired" 
+      });
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid admin token" 
+      });
+    }
+
+    // Generic error response
+    return res.status(500).json({ 
+      success: false, 
+      message: "Admin authentication failed" 
+    });
   }
 };
 

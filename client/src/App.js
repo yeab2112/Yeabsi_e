@@ -19,7 +19,7 @@ import SearchBar from './component/searchBar.js';
 export const AuthContext = createContext(null);
 
 function App() {
- 
+
   return (
     <div className="App">
       <ToastContainer />
@@ -34,6 +34,7 @@ function App() {
         <Route path='/collection' element={<Collection />} />
         <Route path='/place-order' element={<PlaceOrder />} />
         <Route path='/order-confirmation' element={<Order />} />
+        <Route path='/order-confirmation/:orderId' element={<Order />} />
         <Route path='/logout' element={<Logout />} />
         <Route path='/login' element={<AuthPage />} />
         <Route path='/signup' element={<AuthPage />} />

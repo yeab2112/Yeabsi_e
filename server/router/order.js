@@ -1,17 +1,25 @@
 import express from 'express';
-import  {createOrder,getUserOrders,getOrderById} from '../controller/orderController.js';
-import authenticateUser from'../middleware/user.js';
-import  authoAdmin from "../middleware/autho.js"
+import { 
+  createOrder,
+  getUserOrders,
+  getAllOrders,
+  updateOrderItemStatus 
+} from '../controller/orderController.js';
+import authenticateUser from '../middleware/user.js';
+import authoAdmin from "../middleware/autho.js";
 
-const orderRoutes= express.Router();
+const orderRoutes = express.Router();
 
 // Create a new order
 orderRoutes.post('/', authenticateUser, createOrder);
 
 // Get all orders for authenticated user
-orderRoutes.get('/orders', authenticateUser, getUserOrders);
+orderRoutes.get('/', authenticateUser, getUserOrders);
 
-// Get specific order by ID
-orderRoutes.get('/:id', authenticateUser, getOrderById);
+// Admin route to get all orders
+orderRoutes.get('/allOrder', authoAdmin, getAllOrders);
+
+// Admin route to update order status
+orderRoutes.put('/status/:orderId', authoAdmin, updateOrderItemStatus);
 
 export default orderRoutes;
