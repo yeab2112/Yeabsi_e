@@ -4,16 +4,20 @@
       {
         "src": "index.js",
         "use": "@vercel/node",
-        "config": { 
-          "includeFiles": ["**/*.js", "**/*.json", "!node_modules/**"]
+        "config": {
+          "includeFiles": ["router/**", "config/**"]
         }
       }
     ],
     "routes": [
       {
+        "src": "/api/(.*)",
+        "dest": "index.js"
+      },
+      {
         "src": "/(.*)",
         "dest": "index.js",
-        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        "methods": ["GET"] 
       }
     ]
   }
