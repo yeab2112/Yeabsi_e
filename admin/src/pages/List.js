@@ -3,7 +3,6 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { TrashIcon } from '@heroicons/react/outline';
-import { Dialog } from '@headlessui/react';
 
 const List = () => {
   const [products, setProducts] = useState([]);
@@ -59,7 +58,7 @@ const List = () => {
       );
 
       if (response.data.success) {
-        setProducts(products.filter((product) => product._id !== productId));
+        setProducts((prevProducts) => prevProducts.filter((product) => product._id !== productId));
         toast.success('Product deleted successfully');
       } else {
         throw new Error(response.data.message || 'Failed to delete product');
@@ -75,10 +74,15 @@ const List = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
   const confirmDelete = () => {
     if (productToDelete) {
       handleDelete(productToDelete);
-      setIsDeleteModalOpen(false);
+      closeDeleteModal();
     }
   };
 
@@ -102,52 +106,45 @@ const List = () => {
         <span className="font-semibold text-center">Action</span>
       </div>
 
-      {products.length === 0 ? (
-        <div className="text-center text-lg text-gray-500">No products available</div>
-      ) : (
-        products.map((product) => (
-          <div key={product._id} className="grid grid-cols-6 gap-4 py-4 border-b">
-            <img
-              src={product.images[0] || '/placeholder-image.jpg'}
-              alt={product.name}
-              className="w-16 h-16 object-cover rounded-md mx-auto"
-              onError={(e) => {
-                e.target.src = '/placeholder-image.jpg';
-              }}
-            />
-            <span className="text-center">{product.name}</span>
-            <span className="text-center">{product.category}</span>
-            <span className="text-center">${product.price}</span>
-            <div className="flex justify-center">
-              <TrashIcon
-                onClick={() => openDeleteModal(product._id)}
-                className="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600"
+      {/* Scrollable Product List */}
+      <div className="overflow-y-auto h-[60vh]">
+        {products.length === 0 ? (
+          <div className="text-center text-lg text-gray-500">No products available</div>
+        ) : (
+          products.map((product) => (
+            <div key={product._id} className="grid grid-cols-6 gap-4 py-4 border-b">
+              <img
+                src={product.images[0] || '/placeholder-image.jpg'}
+                alt={product.name}
+                className="w-16 h-16 object-cover rounded-md mx-auto"
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg';
+                }}
               />
+              <span className="text-center">{product.name}</span>
+              <span className="text-center">{product.category}</span>
+              <span className="text-center">${product.price}</span>
+              <div className="flex justify-center">
+                <TrashIcon
+                  onClick={() => openDeleteModal(product._id)}
+                  className="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600"
+                />
+              </div>
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
 
-      {/* Delete Confirmation Modal */}
-      <Dialog
-        open={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-bold text-gray-900">
-              Confirm Deletion
-            </Dialog.Title>
-            <Dialog.Description className="mt-2 text-gray-600">
-              Are you sure you want to delete this product? This action cannot be undone.
-            </Dialog.Description>
-
-            <div className="mt-6 flex justify-end space-x-3">
+      {/* Delete Confirmation Modal (without @headlessui/react) */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Confirm Deletion</h2>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
               <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className=" bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 rounded-md transition-colors"
+                onClick={closeDeleteModal}
+                className="bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 rounded-md transition-colors"
               >
                 Cancel
               </button>
@@ -158,9 +155,9 @@ const List = () => {
                 Delete
               </button>
             </div>
-          </Dialog.Panel>
+          </div>
         </div>
-      </Dialog>
+      )}
 
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop />
     </div>

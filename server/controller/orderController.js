@@ -47,81 +47,140 @@ import { UserModel } from "../moduls/user.js";
     });
   }
 };
-
-// Get orders for authenticated use
+// Get all orders with items for current user
 const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user._id;
-    
-    const orders = await Order.find({ user: userId })
+    const orders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
-      .populate('user', 'name email')
-      .populate({
-        path: 'items.productId',
-        select: 'name price images'
-      });
+      .select('_id orderNumber items total createdAt status')
+      .lean();
 
-    if (!orders || orders.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'No orders found',
-        orders: []
+    if (!orders.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'No orders found' 
       });
     }
 
-    res.status(200).json({
+    res.json({ 
       success: true,
-      count: orders.length,
-      orders
+      orders 
     });
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch orders',
-      error: error.message
+      message: 'Server error while fetching orders'
     });
   }
 };
 
-const getAllOrders = (async (req, res) => {
-  const orders = await Order.find({})
-    .populate('user', 'id name email')
-    .sort({ createdAt: -1 });
-  
-  res.json({ success: true, orders });
-});
+// Get only order status
+const getOrderStatus = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.orderId,
+      user: req.user._id
+    }).select('status');
 
-const updateOrderItemStatus = (async (req, res) => {
-  const { productId, size, status } = req.body;
-  
-  const order = await Order.findById(req.params.orderId);
-  
-  if (!order) {
-    res.status(404);
-    throw new Error('Order not found');
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      status: order.status
+    });
+  } catch (error) {
+    console.error('Error fetching order status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching order status'
+    });
   }
-  
-  // Find and update the specific item
-  const itemIndex = order.items.findIndex(
-    item => item._id.toString() === productId && item.size === size
-  );
-  
-  if (itemIndex === -1) {
-    res.status(404);
-    throw new Error('Order item not found');
+};
+// Get all orders with user and delivery info
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({})
+      .populate('user', 'name email') // Populate user info
+      .sort({ createdAt: -1 });
+
+    if (!orders.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'No orders found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      orders 
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching orders'
+    });
   }
-  
-  order.items[itemIndex].status = status;
-  const updatedOrder = await order.save();
-  
-  res.json({ 
-    success: true, 
-    order: updatedOrder,
-    message: 'Item status updated successfully'
-  });
-});
+};
 
+// Update order status
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { orderId } = req.params;
 
-export { createOrder,getUserOrders, getAllOrders,updateOrderItemStatus}
+    // Validate status input
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    // Find and update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { 
+        status,
+        updatedAt: new Date() // Update the timestamp
+      },
+      { 
+        new: true, // Return the updated document
+        runValidators: true // Run schema validators
+      }
+    ).populate('user', 'name email');
+
+    if (!updatedOrder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Emit real-time update if using sockets
+    // io.emit('order_updated', updatedOrder);
+
+    res.json({
+      success: true,
+      order: updatedOrder,
+      message: `Order status updated to ${status}`
+    });
+
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error while updating order status'
+    });
+  }
+};
+
+export { createOrder,getOrderStatus, getUserOrders,getAllOrders,updateOrderStatus}
 

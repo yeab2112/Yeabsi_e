@@ -4,8 +4,6 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Orders() {
-  const atoken = localStorage.getItem('atoken'); 
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,27 +12,19 @@ function Orders() {
   const [ordersPerPage] = useState(5);
   const [isUpdating, setIsUpdating] = useState({});
 
+  const token = localStorage.getItem('atoken');
+
   useEffect(() => {
     const fetchAllOrders = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:5000/api/orders/allOrder',
-          {
-            headers: {
-              'Authorization': `Bearer ${atoken}`
-            }
+        const response = await axios.get('http://localhost:5000/api/orders/allOrder', {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        );
+        });
 
         if (response.data.success) {
-          const ordersWithStatus = response.data.orders.map(order => ({
-            ...order,
-            items: order.items.map(item => ({
-              ...item,
-              status: item.status || 'pending'
-            }))
-          }));
-          setOrders(ordersWithStatus);
+          setOrders(response.data.orders);
         } else {
           throw new Error(response.data.message || 'Failed to fetch orders');
         }
@@ -48,271 +38,232 @@ function Orders() {
     };
 
     fetchAllOrders();
-  }, [atoken]);
+  }, [token]);
 
-  const updateItemStatus = async (orderId, productId, size, newStatus) => {
-    const itemKey = `${orderId}-${productId}-${size}`;
-    setIsUpdating(prev => ({ ...prev, [itemKey]: true }));
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    if (!orderId || !newStatus) return;
+
+    setIsUpdating(prev => ({ ...prev, [orderId]: true }));
 
     try {
       const response = await axios.put(
         `http://localhost:5000/api/orders/status/${orderId}`,
-        { productId, size, status: newStatus },
+        { status: newStatus },
         {
           headers: {
-            'Authorization': `Bearer ${atoken}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
       if (response.data.success) {
-        setOrders(prev => prev.map(order => 
-          order._id === orderId 
-            ? {
-                ...order,
-                items: order.items.map(item => 
-                  item._id === productId && item.size === size
-                    ? { ...item, status: newStatus }
-                    : item
-                )
-              }
-            : order
+        setOrders(prev => prev.map(order =>
+          order._id === orderId ? {
+            ...order,
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+          } : order
         ));
         toast.success(`Status updated to ${newStatus}`);
       } else {
         throw new Error(response.data.message || 'Failed to update status');
       }
     } catch (err) {
-      console.error('Error updating status:', err);
+      console.error('Status update error:', err);
       toast.error(err.response?.data?.message || 'Failed to update status');
     } finally {
-      setIsUpdating(prev => ({ ...prev, [itemKey]: false }));
+      setIsUpdating(prev => ({ ...prev, [orderId]: false }));
     }
   };
 
-  const filteredOrders = orders.filter(order => 
-    order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.deliveryInfo.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${order.deliveryInfo.firstName} ${order.deliveryInfo.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(order => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      order._id.toLowerCase().includes(searchLower) ||
+      (order.user?.email?.toLowerCase().includes(searchLower)) ||
+      (order.deliveryInfo?.firstName?.toLowerCase().includes(searchLower)) ||
+      (order.deliveryInfo?.lastName?.toLowerCase().includes(searchLower)) ||
+      (order.deliveryInfo?.email?.toLowerCase().includes(searchLower))
+    );
+  });
 
-  // Pagination logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'shipped': return 'bg-purple-100 text-purple-800';
+      case 'delivered': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6 text-center">
-        <h2 className="text-xl">Loading orders...</h2>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto p-6 text-center">
-        <h2 className="text-xl text-red-500">Error loading orders</h2>
-        <p>{error}</p>
+      <div className="text-center py-8">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md mx-auto">
+          <strong className="font-bold">Error!</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6">Admin Orders Dashboard</h1>
-      
-      {/* Search Bar */}
-      <div className="mb-6 sticky top-0 bg-white py-2 z-10">
+    <div className="container mx-auto px-4 py-8 overflow-x-auto">
+      <h1 className="text-2xl font-bold mb-6">Orders Management</h1>
+
+      {/* Search Section */}
+      <div className="mb-6 bg-white p-4 rounded-lg shadow">
         <input
           type="text"
-          placeholder="Search orders by ID, email or name..."
-          className="w-full p-2 border border-gray-300 rounded-md"
+          placeholder="Search orders by ID, name, or email..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
         />
+        <div className="mt-2 text-sm text-gray-500">
+          {filteredOrders.length} orders found
+        </div>
       </div>
 
-      {/* Orders List */}
-      <div className="space-y-6 mb-8 max-h-[600px] overflow-y-auto">
+      {/* Orders List (Scroll Container) */}
+      <div className="space-y-4 mb-8 max-h-96 overflow-y-auto">
         {currentOrders.length > 0 ? (
-          currentOrders.map(order => {
-            const orderDate = new Date(order.createdAt).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
+          currentOrders.map(order => (
+            <div key={order._id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              {/* Order Header */}
+              <div className="bg-gray-50 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b">
+                <div className="mb-2 sm:mb-0">
+                  <h2 className="font-semibold text-lg">Order #{order._id.slice(-6)}</h2>
+                  <p className="text-sm text-gray-600">
+                    {new Date(order.createdAt).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                  <select
+                    value={order.status}
+                    onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                    disabled={isUpdating[order._id]}
+                    className={`border rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${isUpdating[order._id] ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
 
-            return (
-              <div key={order._id} className="bg-white shadow-lg rounded-lg overflow-hidden">
-                {/* Order Header */}
-                <div className="bg-gray-50 p-4 border-b border-gray-200">
-                  <div className="flex flex-col md:flex-row md:justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold">Order #{order._id}</h2>
-                      <p className="text-sm text-gray-600">Placed on {orderDate}</p>
+              {/* Order Content */}
+              <div className="p-4">
+                {/* Customer Info */}
+                <div className="mb-4">
+                  <h3 className="font-medium text-lg mb-2 text-gray-800">Customer Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="font-medium">User Details</p>
+                      <p><span className="text-gray-600">Name:</span> {order.user?.name || 'N/A'}</p>
+                      <p><span className="text-gray-600">Email:</span> {order.user?.email || 'N/A'}</p>
                     </div>
-                    <div className="mt-2 md:mt-0">
-                      <p className="text-sm">
-                        <span className="font-medium">Customer:</span> {order.deliveryInfo.firstName} {order.deliveryInfo.lastName}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Email:</span> {order.deliveryInfo.email}
-                      </p>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="font-medium">Delivery Details</p>
+                      <p><span className="text-gray-600">To:</span> {order.deliveryInfo?.firstName} {order.deliveryInfo?.lastName}</p>
+                      <p><span className="text-gray-600">Address:</span> {order.deliveryInfo?.address}, {order.deliveryInfo?.city}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Order Items - Scrollable Container */}
-                <div className="p-4 max-h-[500px] overflow-y-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {order.items.map((item, index) => {
-                        const itemKey = `${order._id}-${item._id}-${item.size}`;
-                        return (
-                          <tr key={index}>
-                            {/* Product Column */}
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-16 w-16">
-                                  <img
-                                    className="h-full w-full object-contain"
-                                    src={item.image || '/placeholder-product.jpg'}
-                                    alt={item.name}
-                                  />
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                                  <div className="text-sm text-gray-500">${item.price.toFixed(2)}</div>
-                                </div>
-                              </div>
-                            </td>
-
-                            {/* Details Column */}
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
-                                <p><strong>Size:</strong> {item.size}</p>
-                                <p><strong>Qty:</strong> {item.quantity}</p>
-                                <p><strong>Total:</strong> ${(item.price * item.quantity).toFixed(2)}</p>
-                              </div>
-                            </td>
-
-                            {/* Status Column */}
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              {isUpdating[itemKey] ? (
-                                <span className="text-sm text-gray-500">Updating...</span>
-                              ) : (
-                                <select
-                                  value={item.status}
-                                  onChange={(e) => updateItemStatus(order._id, item._id, item.size, e.target.value)}
-                                  className={`border rounded-md p-1 text-sm ${
-                                    item.status === 'pending' ? 'border-yellow-300 bg-yellow-50' :
-                                    item.status === 'processing' ? 'border-blue-300 bg-blue-50' :
-                                    item.status === 'shipped' ? 'border-purple-300 bg-purple-50' :
-                                    item.status === 'delivered' ? 'border-green-300 bg-green-50' :
-                                    'border-red-300 bg-red-50'
-                                  }`}
-                                  disabled={isUpdating[itemKey]}
-                                >
-                                  <option value="pending">Pending</option>
-                                  <option value="processing">Processing</option>
-                                  <option value="shipped">Shipped</option>
-                                  <option value="delivered">Delivered</option>
-                                </select>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                {/* Order Items */}
+                <div className="mb-4">
+                  <h3 className="font-medium text-lg mb-2 text-gray-800">Order Items</h3>
+                  <div className="space-y-3">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex border-b pb-3 last:border-0">
+                        <img 
+                          src={item.image || '/placeholder-product.jpg'} 
+                          alt={item.name}
+                          className="w-16 h-16 object-contain mr-4 rounded border border-gray-200"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/placeholder-product.jpg';
+                          }}
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                            <div><span className="text-gray-600">Size:</span> {item.size}</div>
+                            <div><span className="text-gray-600">Qty:</span> {item.quantity}</div>
+                            <div><span className="text-gray-600">Price:</span> ${item.price.toFixed(2)}</div>
+                            <div><span className="text-gray-600">Total:</span> ${(item.price * item.quantity).toFixed(2)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Order Summary */}
-                <div className="bg-gray-50 p-4 border-t border-gray-200">
-                  <div className="flex flex-col md:flex-row md:justify-between">
-                    <div className="mb-2 md:mb-0">
-                      <p className="text-sm">
-                        <strong>Payment Method:</strong> {order.paymentMethod}
-                      </p>
-                      <p className="text-sm">
-                        <strong>Delivery Address:</strong> {order.deliveryInfo.address}, {order.deliveryInfo.city}
-                      </p>
+                <div className="bg-gray-50 p-4 rounded">
+                  <h3 className="font-medium text-lg mb-2 text-gray-800">Order Summary</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p><span className="text-gray-600">Payment Method:</span> {order.paymentMethod}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm">
-                        <strong>Subtotal:</strong> ${order.subtotal.toFixed(2)}
-                      </p>
-                      <p className="text-sm">
-                        <strong>Delivery Fee:</strong> ${order.deliveryFee.toFixed(2)}
-                      </p>
-                      <p className="text-lg font-bold">
-                        <strong>Total:</strong> ${order.total.toFixed(2)}
-                      </p>
+                      <p><span className="text-gray-600">Subtotal:</span> ${order.subtotal.toFixed(2)}</p>
+                      <p><span className="text-gray-600">Delivery Fee:</span> ${order.deliveryFee.toFixed(2)}</p>
+                      <p className="font-bold text-lg mt-2">Total: ${order.total.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })
+            </div>
+          ))
         ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No orders found</p>
+          <div className="text-center py-8 bg-white rounded-lg shadow">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">No orders found</h3>
+            <p className="mt-1 text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
           </div>
         )}
       </div>
 
-      {/* Pagination - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 w-full bg-white py-4 border-t border-gray-200">
-        <div className="flex justify-center">
-          <nav className="inline-flex rounded-md shadow">
-            <button
-              onClick={() => paginate(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-              <button
-                key={number}
-                onClick={() => paginate(number)}
-                className={`px-4 py-2 border text-sm font-medium ${currentPage === number ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'} hover:bg-gray-50`}
-              >
-                {number}
-              </button>
-            ))}
-
-            <button
-              onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </nav>
-        </div>
-      </div>
     </div>
   );
 }

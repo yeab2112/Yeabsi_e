@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
-import axios from 'axios'; // Import axios to make API requests
+import axios from 'axios'; 
 import { assets } from '../asset/asset';
 import RelatedProduct from '../component/Relatedproduct';
 import React, { useContext, useState, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 
 const Product = () => {
-  const { productId } = useParams(); // Get the product ID from the URL
+  const { productId } = useParams(); 
   const [product, setProduct] = useState(null);
   const { products, addToCart, currency } = useContext(ShopContext);
   const [currentImage, setCurrentImage] = useState(null);
@@ -15,53 +15,46 @@ const Product = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    
-
     const fetchProduct = async () => {
       try {
-        setLoading(true); // Start loading
-        // Fetch the specific product details
+        setLoading(true); 
         const response = await axios.get(`http://localhost:5000/api/product/detail_products/${productId}`);
         if (response.data) {
-          // Parse the sizes if it's a string
           const sizes = response.data.sizes ? JSON.parse(response.data.sizes) : [];
           setProduct({
             ...response.data,
-            sizes, // Ensure sizes is an array now
+            sizes,
           });
-          setCurrentImage(response.data.images[0] || null);  // Set the first image as default
+          setCurrentImage(response.data.images[0] || null);
         }
       } catch (error) {
         console.error('Error fetching product details:', error);
         setError('Product not found');
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false); 
       }
     };
 
-    fetchProduct(); // Fetch the current product details
+    fetchProduct();
   }, [productId]);
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError('');
-    addToCart(product._id, selectedSize); // Passing product ID and selected size
+    addToCart(product._id, selectedSize);
   };
-
-  const rating = 4; // Example rating
-  const totalStars = 5;
-
 
   if (loading) return <div className="text-center py-8">Loading...</div>;
   if (!product) return <div className="text-center py-8">{error || 'Product not found'}</div>;
 
   return (
-    <div className="product-detail-container p-6 flex flex-col gap-8 max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+    <div className="product-detail-container p-6 flex flex-col gap-8 w-full mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 w-full justify-center gap-8 ">
         {/* First Column: Thumbnails */}
-        <div className="thumbnails flex flex-col gap-4">
+        <div className="thumbnails flex flex-col gap-3 w-1/3">
           {product.images?.map((img, index) => (
             <img
               key={index}
@@ -76,7 +69,7 @@ const Product = () => {
         </div>
 
         {/* Second Column: Main Image */}
-        <div className="main-image flex justify-center items-center">
+        <div className="main-image flex justify-center w-2/3">
           <img
             src={currentImage || product.image || assets.placeholder}
             alt={product.name}
@@ -85,13 +78,12 @@ const Product = () => {
         </div>
 
         {/* Third Column: Product Details */}
-        <div className="details-section flex flex-col gap-4">
+        <div className="details-section flex flex-col gap-4 w-2/3">
           <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
 
           {/* Stars/Rating */}
           <div className="rating flex items-center mb-4">
             <span className="text-yellow-500">⭐⭐⭐⭐☆</span>
-            {/* Replace above with dynamic rating logic if needed */}
           </div>
 
           {/* Price */}

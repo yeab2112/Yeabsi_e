@@ -9,17 +9,18 @@ function About() {
       <Title title1="ABOUT" title2="US"/>    
 
       {/* About Section with Image and Description */}
-      <div className="flex flex-col md:flex-row mt-8 mb-8">
+      <div className="flex flex-col md:flex-row mt-8 mb-8 space-y-6 md:space-y-0">
         {/* Left - Image */}
-        <div className="md:w-1/2 mb-4 md:mb-0">
+        <div className="w-full md:w-1/2 mb-4 md:mb-0">
           <img 
             src={download} 
             alt="About" 
-            className="w-full h-72 object-cover rounded-md"
+            className="w-full h-full object-cover rounded-md"
           />
         </div>
+        
         {/* Right - Description */}
-        <div className="md:w-1/2 pl-0 md:pl-8">
+        <div className="w-full md:w-1/2 md:pl-8">
           <p className="text-lg mb-4">
             At Addis Zemmen Store, we are dedicated to bringing you the latest trends in fashion, especially designed for women and children. We strive to offer premium quality, stylish clothing that fits any occasion.
           </p>
@@ -68,7 +69,7 @@ function About() {
         </div>
       </div>
 
-      <h4 className="text-center text-xl mt-8 text-gray-500">
+      <h4 className="text-center text-xl my-8 text-gray-500">
         Thank you for choosing Addis Zemmen Store. We look forward to serving you with the best in fashion!
       </h4>
 

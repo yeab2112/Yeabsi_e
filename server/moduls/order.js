@@ -28,11 +28,7 @@ const orderItemSchema = new mongoose.Schema({
   image: {
     type: String
   },
-  status: {
-    type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
-  }
+  
 });
 
 const deliveryInfoSchema = new mongoose.Schema({

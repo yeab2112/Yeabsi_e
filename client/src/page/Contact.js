@@ -1,4 +1,3 @@
-
 import React from 'react';
 import NewsLeterBox from '../component/NewsLeterBox';  // Importing NewsLeterBox component
 import Title from '../component/Title';  // Importing Title component
@@ -6,18 +5,18 @@ import contact from '../image/contact.png';
 
 const Contact = () => {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full mx-auto px-4 py-8 h-full mt-8 md:my-16">
       {/* Title Section */}
       <Title title1="CONTACT" title2="US" />
 
       {/* Main Content */}
-      <div className="flex flex-col md:flex-row items-center">
+      <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-8">
         {/* Left - Image */}
-        <div className="md:w-1/2 mb-8 md:mb-0">
+        <div className="bg-blue-100 md:w-1/2 mb-8 md:mb-0">
           <img
             src={contact}  // Using the imported image
             alt="Contact Us"
-            className="w-full h-64 object-cover rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105"
+            className="w-full h-full object-cover rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105"
           />
         </div>
 

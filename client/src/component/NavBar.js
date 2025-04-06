@@ -7,13 +7,13 @@ import { ShopContext } from "../context/ShopContext.js";
 import { Link } from "react-router-dom";
 
 function NavBar() {
-  const [visible, setVisible] = useState(false); // For mobile menu
+  const [visible, setVisible] = useState(false); // For mobile menu visibility
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false); // For profile dropdown visibility
   const navigate = useNavigate();
   const MySwal = withReactContent(Swal);
 
   // Accessing context values
-  const { setShowSearch, cart } = useContext(ShopContext); // Adding cart to display its length
-  const { token, setToken } = useContext(ShopContext);  // Get the token and setToken function from context
+  const { setShowSearch, cart, token, setToken } = useContext(ShopContext); 
   const handleLogout = () => {
     MySwal.fire({
       title: "Are you sure?",
@@ -26,7 +26,7 @@ function NavBar() {
     }).then((result) => {
       if (result.isConfirmed) {
         localStorage.removeItem("token");
-        setToken("")
+        setToken(""); // Clear token from context
         navigate("/login");
       }
     });
@@ -36,10 +36,13 @@ function NavBar() {
     setShowSearch(true); // Toggle the search bar visibility
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownVisible(!isDropdownVisible); // Toggle dropdown visibility
+  };
+
   return (
-    <div className="container mx-auto px-4 py-4">
-      <div className="flex items-center justify-between">
-        {/* Logo or Back Button */}
+    <div className="w-full px-4 py-4">
+      <div className="flex items-center justify-between border-b-2 border-gray-300 w-full">
         <div className="flex-none">
           {visible ? (
             <button
@@ -65,7 +68,7 @@ function NavBar() {
         </div>
 
         {/* Desktop Navigation Links */}
-        <ul className="hidden md:flex flex-1 justify-center space-x-6">
+        <ul className="hidden md:flex flex-1 justify-center space-x-20">
           <li>
             <NavLink
               to="/"
@@ -126,25 +129,39 @@ function NavBar() {
             onClick={toggleSearchBar}
           />
 
-          {/* Profile Dropdown */}
-          <div className="relative group"> {/* Use group to handle hover */}
-            <img
-              src={assets.profile}
-              alt="Profile Icon"
-              className="h-6 w-6 cursor-pointer"
-              onClick={() => window.location.href = '/login'} // Navigate to login page on click
-            />
-            <div className="absolute right-0 bg-white shadow-lg rounded-lg p-4 mt-2 w-40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out">
-              <p className="cursor-pointer hover:text-blue-500">My Profile</p>
-              <p className="cursor-pointer hover:text-blue-500">Orders</p>
-              <p
-                className="cursor-pointer hover:text-blue-500"
-                onClick={handleLogout}
-              >
-                Logout
-              </p>
+          {/* Profile Dropdown (Only visible if token exists) */}
+          {token && (
+            <div className="relative">
+              <img
+                src={assets.profile}
+                alt="Profile Icon"
+                className="h-6 w-6 cursor-pointer"
+                onClick={toggleDropdown} // Toggle the dropdown on click
+              />
+              {isDropdownVisible && (
+                <div className="absolute right-0 bg-white shadow-lg rounded-lg p-4 mt-2 w-40 z-20">
+                  <p
+                    className="cursor-pointer hover:text-blue-500"
+                    onClick={() => navigate('/profile')}
+                  >
+                    My Profile
+                  </p>
+                  <p
+                    className="cursor-pointer hover:text-blue-500"
+                    onClick={() => navigate('/order-confirmation')}
+                  >
+                    Orders
+                  </p>
+                  <p
+                    className="cursor-pointer hover:text-blue-500"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Cart Icon */}
           <Link to="/cart" className="relative">
@@ -156,12 +173,13 @@ function NavBar() {
           </Link>
 
           {/* Hamburger Menu for Mobile */}
-          <div className="md:hidden relative">
+          <div className="relative">
+            {/* Visible only on small screens (below md) */}
             <img
               onClick={() => setVisible(!visible)} // Toggle mobile menu
               src={assets.menu}
               alt="Menu Icon"
-              className="h-6 w-6 cursor-pointer"
+              className="h-6 w-6 cursor-pointer md:hidden" // `md:hidden` will hide it on medium and larger screens
             />
           </div>
         </div>
@@ -170,38 +188,40 @@ function NavBar() {
       {/* Mobile Navigation Menu */}
       {visible && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md z-10">
-          <ul className="flex flex-col space-y-4 p-4">
-            <li>
+
+          <ul className="flex flex-col space-y-4 p-4 z-10">
+            <li className="w-1/3">
               <NavLink
                 to="/"
-                className="text-gray-700 hover:text-blue-500"
+                className="block  text-gray-700 hover:bg-blue-400 hover:text-white py-2 px-4"
                 onClick={() => setVisible(false)} // Close menu on link click
               >
                 HOME
               </NavLink>
             </li>
-            <li>
+
+            <li className="w-1/3">
               <NavLink
                 to="/collection"
-                className="text-gray-700 hover:text-blue-500"
+                className="block  text-gray-700 hover:bg-blue-400 hover:text-white py-2 px-4"
                 onClick={() => setVisible(false)} // Close menu on link click
               >
                 COLLECTION
               </NavLink>
             </li>
-            <li>
+            <li className="w-1/3">
               <NavLink
                 to="/about"
-                className="text-gray-700 hover:text-blue-500"
+                className="block  text-gray-700 hover:bg-blue-400 hover:text-white py-2 px-4"
                 onClick={() => setVisible(false)} // Close menu on link click
               >
                 ABOUT
               </NavLink>
             </li>
-            <li>
+            <li className="w-1/3">
               <NavLink
                 to="/contact"
-                className="text-gray-700 hover:text-blue-500"
+                className="block  text-gray-700 hover:bg-blue-400 hover:text-white py-2 px-4"
                 onClick={() => setVisible(false)} // Close menu on link click
               >
                 CONTACT
