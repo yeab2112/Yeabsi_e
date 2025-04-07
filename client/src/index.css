@@ -1,17 +1,20 @@
+/* Tailwind directives MUST come first */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure the active class underlines the active link */
-.nav-link.active hr {
-  @apply block border-b-2 border-blue-500;
+/* Custom styles using @apply */
+.nav-link {
+  hr {
+    @apply hidden;
+    
+    &.active {
+      @apply block border-b-2 border-blue-500;
+    }
+  }
 }
 
-/* Hide underline for non-active links */
-.nav-link hr {
-  @apply hidden;
-}
-
+/* Pure CSS rules (no Tailwind directives) */
 ::-webkit-scrollbar {
   display: none;
 }
