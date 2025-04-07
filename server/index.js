@@ -12,17 +12,32 @@ dotenv.config();
 
 const app = express();
 
-// CORS setup
+// Proper CORS setup
+const allowedOrigins = [
+  'https://ecomm-frontend-coral.vercel.app',
+  'https://admin-your-store.vercel.app',
+  'http://localhost:3000', // For local 
+  'http://localhost:4000' // For local development
+
+];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
-app.use(cors(corsOptions));
 
+app.use(cors(corsOptions));
 app.use(express.json());
 
-// ➡️ REQUIRED: Root route handler
+// Root route handler
 app.get('/', (req, res) => {
   res.json({
     status: 'API Online',
@@ -44,14 +59,17 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 
-// ➡️ CRITICAL FOR VERCEL: Export the app as a serverless function
-const vercelHandler = app;
-export default vercelHandler;
+// Error handling middleware
+app.use((err, req, res, next) => {
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS policy violation' });
+  }
+  next(err);
+});
 
-// ➡️ Only run server locally when not in Vercel environment
-if (process.env.VERCEL !== '1') {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-  });
-}
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});
+
+export default app; // For Vercel serverless functions
