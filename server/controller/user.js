@@ -96,7 +96,7 @@ const AdminLogin = async (req, res) => {
   }
 
   // Ensure environment variables are loaded
-  if (!process.env.ADMIN_EMAIL || !process.env.JWT_SECRET || !process.env.JWT_SECRET) {
+  if (!process.env.ADMIN_EMAIL || !process.env.JWT_SECRET|| !process.env.JWT_SECRET) {
     return res.status(500).json({ error: "Server configuration error" });
   }
 
@@ -104,7 +104,7 @@ const AdminLogin = async (req, res) => {
   if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
     try {
       // Create a token with a payload (admin email and role)
-      const atoken = jwt.sign({ email, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1d" });
+      const atoken = jwt.sign({ email, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "3d" });
 
       // Send token in response
       return res.status(200).json({ success: true, message: "Login successful", atoken });

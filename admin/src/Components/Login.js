@@ -6,6 +6,7 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     try {
       const response = await fetch("http://localhost:5000/api/user/admin_login", {
         method: "POST",
@@ -14,24 +15,24 @@ function Login({ onLogin }) {
         },
         body: JSON.stringify({ email, password }),
       });
-    
+  
       const data = await response.json();
       console.log("API Response:", data); // Debugging log
-    
+  
       if (!response.ok || !data.success) {
         throw new Error(data.message || "Login failed. Please check your credentials.");
       }
-    
+  
       // Store the token in localStorage
       localStorage.setItem("atoken", data.atoken);
-    
-      // Call the handleLogin function to update authentication state
-      onLogin(data.atoken);
+  
+      // Call the onLogin function to update authentication state
+      onLogin(data.token);
     } catch (error) {
       console.error("Login error:", error.message);
       alert(error.message);
     }
-  }    
+  };
   
 
   const handleForgotPassword = () => {

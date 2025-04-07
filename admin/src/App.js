@@ -12,25 +12,24 @@ function App() {
 
   // Check for token on initial load
   useEffect(() => {
-    const atoken = localStorage.getItem('atoken'); // Retrieve the token from localStorage
-    if (atoken) {
+    const token = localStorage.getItem('token'); // Retrieve token from localStorage
+    if (token) {
       setIsAuthenticated(true); // Set authenticated to true if token exists
     }
   }, []);
-  
+
   // Handle login (set token and update state)
-  const handleLogin = (atoken) => {
-    localStorage.setItem('atoken', atoken); // Store the token in localStorage
+  const handleLogin = (token) => {
+    localStorage.setItem('token', token); // Store token in localStorage
     setIsAuthenticated(true); // Update authentication state
   };
-  
-  // Handle logout
+
   const handleLogout = () => {
     console.log("Logout triggered");
-    localStorage.removeItem('atoken'); // Remove the token from localStorage
-    setIsAuthenticated(false); // Update authentication state
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
   };
-  
+
   return (
     <div className="flex flex-col h-screen">
       {!isAuthenticated ? (
@@ -43,9 +42,9 @@ function App() {
             <main className="flex-1 p-6 bg-gray-100">
               <Routes>
                 {/* Add a route for protected pages */}
-                <Route path="/add" element={isAuthenticated ? <Add /> : <Navigate to="/login" />} />
-                <Route path="/list" element={isAuthenticated ? <List /> : <Navigate to="/login" />} />
-                <Route path="/order" element={isAuthenticated ? <Orders /> : <Navigate to="/login" />} />
+                <Route path="/add" element={isAuthenticated ? <Add /> : <Navigate to="/" />} />
+                <Route path="/list" element={isAuthenticated ? <List /> : <Navigate to="/" />} />
+                <Route path="/order" element={isAuthenticated ? <Orders /> : <Navigate to="/" />} />
 
               </Routes>
             </main>
