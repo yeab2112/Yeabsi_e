@@ -17,12 +17,12 @@ function ShopContextProvider({ children }) {
   const [showSearch, setShowSearch] = useState(false);
   const [cart, setCart] = useState([]);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-
+  const backendUrl = process.env.REACT_APP_API_URL;
   // Fetch all products
   const getProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/product/list_products');
+      const response = await axios.get('backendUrl/api/product/list_products');
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
@@ -44,7 +44,7 @@ function ShopContextProvider({ children }) {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/cart/get', {
+      const response = await axios.get('backendUrl/api/cart/get', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -114,7 +114,7 @@ function ShopContextProvider({ children }) {
   
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/cart/add',
+        'backendUrl/api/cart/add',
         { productId, size: normalizedSize },
         {
           headers: {
@@ -179,7 +179,7 @@ function ShopContextProvider({ children }) {
       }
   
       const response = await axios.put(
-        'http://localhost:5000/api/cart/update',
+        'backendUrl/api/cart/update',
         { 
           productId, 
           size: normalizedSize, 
