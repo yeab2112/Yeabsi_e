@@ -17,7 +17,7 @@ const allowedOrigins = [
   'https://ecomm-frontend-coral.vercel.app',
   'https://admin-ecomm-six.vercel.app',
   'http://localhost:3000', // For local 
-  'http://localhost:4000' // For local development
+  'http://localhost:3001' // For local development
 
 ];
 

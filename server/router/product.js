@@ -9,6 +9,7 @@ import {
   updateProduct,
   getProductById,
   productDetail,
+  updateProducts
 } from '../controller/product.js';
 
 const productRouter = express.Router();
@@ -38,5 +39,6 @@ productRouter.get('/products/:id', getProductById);
 
 // Get detailed product information by ID (change this to avoid conflicts)
 productRouter.get('/detail_products/:productId', productDetail);  
+productRouter.put('/update_product/:productId',authoAdmin, updateProducts);
 
 export default productRouter;

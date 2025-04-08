@@ -22,7 +22,7 @@ function ShopContextProvider({ children }) {
   const getProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get('backendUrl/api/product/list_products');
+      const response = await axios.get('http://localhost:5000/api/product/list_products');
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
@@ -44,7 +44,7 @@ function ShopContextProvider({ children }) {
     }
 
     try {
-      const response = await axios.get('backendUrl/api/cart/get', {
+      const response = await axios.get('http://localhost:5000/api/cart/get', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -114,7 +114,7 @@ function ShopContextProvider({ children }) {
   
     try {
       const response = await axios.post(
-        'backendUrl/api/cart/add',
+        'http://localhost:5000/api/cart/add',
         { productId, size: normalizedSize },
         {
           headers: {
@@ -179,7 +179,7 @@ function ShopContextProvider({ children }) {
       }
   
       const response = await axios.put(
-        'backendUrl/api/cart/update',
+        'http://localhost:5000/api/cart/update',
         { 
           productId, 
           size: normalizedSize, 

@@ -1,14 +1,20 @@
-import mongoose from "mongoose"
-import dotenv from "dotenv"
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-dotenv.config({path:"./config/.env"})
- const connction= async()=>{
-    try{
-         await mongoose.connect(process.env.URL)
-         console.log('mongoDB connected')
+// Load environment variables from the .env file
+dotenv.config({ path: "./config/.env" });
 
-    }catch(err){console.log(err)
+// Create a connection function
+const connection = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+  }
+};
 
-    }
- }
- connction()
+connection();
