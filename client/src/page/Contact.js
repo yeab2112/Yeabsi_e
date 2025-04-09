@@ -1,6 +1,6 @@
 import React from 'react';
-import NewsLeterBox from '../component/NewsLeterBox';  // Importing NewsLeterBox component
-import Title from '../component/Title';  // Importing Title component
+import NewsLeterBox from '../component/NewsLeterBox';  
+import Title from '../component/Title';  
 import contact from '../image/contact.png';
 
 const Contact = () => {

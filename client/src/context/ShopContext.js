@@ -17,7 +17,6 @@ function ShopContextProvider({ children }) {
   const [showSearch, setShowSearch] = useState(false);
   const [cart, setCart] = useState([]);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const backendUrl = process.env.REACT_APP_API_URL;
   // Fetch all products
   const getProducts = useCallback(async () => {
     setLoading(true);
