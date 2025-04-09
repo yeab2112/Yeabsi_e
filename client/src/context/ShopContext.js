@@ -23,19 +23,23 @@ function ShopContextProvider({ children }) {
     setLoading(true);
     try {
       const response = await axios.get('https://ecomm-backend-livid.vercel.app/api/product/list_products');
+      
+      console.log('API Response:', response.data); // Log response to inspect structure
+      
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
         throw new Error(response.data.message || 'Failed to fetch products');
       }
     } catch (err) {
+      console.error('Error fetching products:', err); // Log full error object for debugging
       setError(err.message);
       toast.error(err.message);
     } finally {
       setLoading(false);
     }
   }, []);
-
+  
   // Fetch cart from API
   const fetchCart = useCallback(async () => {
     if (!token) {
@@ -44,7 +48,7 @@ function ShopContextProvider({ children }) {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/cart/get', {
+      const response = await axios.get('https://ecomm-backend-livid.vercel.app/api/cart/get', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -114,7 +118,7 @@ function ShopContextProvider({ children }) {
   
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/cart/add',
+        'https://ecomm-backend-livid.vercel.app/api/cart/add',
         { productId, size: normalizedSize },
         {
           headers: {
@@ -179,7 +183,7 @@ function ShopContextProvider({ children }) {
       }
   
       const response = await axios.put(
-        'http://localhost:5000/api/cart/update',
+        'https://ecomm-backend-livid.vercel.app/api/cart/update',
         { 
           productId, 
           size: normalizedSize, 
