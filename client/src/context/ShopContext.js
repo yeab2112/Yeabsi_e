@@ -22,7 +22,7 @@ function ShopContextProvider({ children }) {
   const getProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/product/list_products');
+      const response = await axios.get('https://ecomm-backend-livid.vercel.app/api/product/list_products');
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
