@@ -18,7 +18,7 @@ const Product = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true); 
-        const response = await axios.get(`http://localhost:5000/api/product/detail_products/${productId}`);
+        const response = await axios.get(`https://ecomm-backend-livid.vercel.app/api/product/detail_products/${productId}`);
         if (response.data) {
           const sizes = response.data.sizes ? JSON.parse(response.data.sizes) : [];
           setProduct({
