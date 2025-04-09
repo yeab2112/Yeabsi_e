@@ -41,7 +41,7 @@ const AuthPage = () => {
 
     try {
       const endpoint = type === 'login' ? '/api/user/login' : '/api/user/signup';
-      const response = await axios.post(`http://localhost:5000${endpoint}`, formData);
+      const response = await axios.post(`https://ecomm-backend-livid.vercel.app${endpoint}`, formData);
 
       // On success, set the token in context and navigate to home
       setToken(response.data.token); // Store the token in the global context
