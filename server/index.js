@@ -15,7 +15,7 @@ const app = express();
 // Proper CORS setup
 const allowedOrigins = [
   'https://ecomm-frontend-eosin.vercel.app',
-  'https://admin-ecomm-six.vercel.app',
+  'https://ecomm-admin-murex.vercel.app/',
   'http://localhost:3000', // For local 
   'http://localhost:3001' // For local development
 
