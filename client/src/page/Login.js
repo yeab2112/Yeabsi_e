@@ -8,7 +8,7 @@ import { ShopContext } from '../context/ShopContext'; // import ShopContext
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);  // To toggle between login/signup
   const [formData, setFormData] = useState({
-    name: isLogin ? '' : '',  // Name field is only required for signup
+    name: '',  // Default empty for both login and signup
     email: '',
     password: '',
   });
@@ -24,6 +24,15 @@ const AuthPage = () => {
       navigate('/');  // Redirect to home if token is available
     }
   }, [token, navigate]);
+
+  // Update formData state whenever `isLogin` changes
+  useEffect(() => {
+    setFormData({
+      name: isLogin ? '' : '',  // Name field is only required for signup
+      email: '',
+      password: '',
+    });
+  }, [isLogin]);
 
   // Toggle between login and signup forms
   const toggleForm = () => setIsLogin(!isLogin);
@@ -41,7 +50,7 @@ const AuthPage = () => {
 
     try {
       const endpoint = type === 'login' ? '/api/user/login' : '/api/user/signup';
-      const response = await axios.post(`https://ecomm-backend-livid.vercel.app/${endpoint}`, formData);
+      const response = await axios.post(`https://ecomm-backend-livid.vercel.app${endpoint}`, formData);
 
       // On success, set the token in context and navigate to home
       setToken(response.data.token); // Store the token in the global context
@@ -49,8 +58,10 @@ const AuthPage = () => {
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} successful!`);
       navigate('/');  // Redirect to the home page after success
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred. Please try again.');
-      toast.error(err.response?.data?.message || 'Something went wrong.');
+      // Handle error gracefully
+      const errorMessage = err.response?.data?.message || 'An error occurred. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
