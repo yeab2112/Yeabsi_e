@@ -32,7 +32,7 @@ function Cart() {
             {cart.map((item) => (
               <div
                 key={`${item._id}_${item.size}`}
-                className="flex flex-col sm:flex-row items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out"
+                className="flex flex-col sm:flex-col  md:flex-row items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out"
               >
                 {/* Product Image */}
                 <img
