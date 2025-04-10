@@ -32,24 +32,24 @@ function Cart() {
             {cart.map((item) => (
               <div
                 key={`${item._id}_${item.size}`}
-                className="flex items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out"
+                className="flex flex-col sm:flex-row items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out"
               >
                 {/* Product Image */}
                 <img
                   src={item.image || '/placeholder-product.png'}
                   alt={item.name}
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 mb-4 sm:mb-0 sm:mr-6"
                 />
 
                 {/* Product Details */}
-                <div className="flex-1 ml-6">
+                <div className="flex-1 text-center sm:text-left">
                   <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
                   <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">Size: {item.size}</p>
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 mt-4 sm:mt-0">
                   <button
                     onClick={() => decreaseQuantity(item._id, item.size)}
                     className="bg-gray-300 hover:bg-gray-400 p-2 rounded-full disabled:opacity-50"
@@ -71,7 +71,7 @@ function Cart() {
                 {/* Remove Item Button */}
                 <button
                   onClick={() => removeFromCart(item._id, item.size)}
-                  className="text-red-600 hover:text-red-800 p-3 rounded-full hover:bg-red-50"
+                  className="text-red-600 hover:text-red-800 p-3 rounded-full hover:bg-red-50 mt-4 sm:mt-0"
                   aria-label="Remove item"
                 >
                   <FaTrash />

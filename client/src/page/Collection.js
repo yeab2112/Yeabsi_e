@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import Title from '../component/Title';
 
@@ -23,7 +23,6 @@ function Collection() {
     setSortOption(e.target.value);
   };
 
-  // Filter products by category and search query
   const filteredProducts = products
     .filter((product) =>
       (!selectedCategories.length || selectedCategories.includes(product.category)) &&
@@ -78,7 +77,6 @@ function Collection() {
           <div className="flex-grow flex justify-center">
             <Title title1="All" title2="Collection" />
           </div>
-          {/* Sorting Dropdown */}
           <div className="ml-4">
             <select
               className="border p-2 rounded shadow-sm text-gray-700 focus:ring focus:ring-blue-300"
@@ -93,16 +91,16 @@ function Collection() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <Link
                 key={product._id}
-                to={`/product/${product._id}`} // Navigate to product details by ID
-                className="bg-blue-100 border p-4 rounded shadow-sm hover:shadow-lg transition-shadow duration-200"
+                to={`/product/${product._id}`}
+                className="bg-blue-100 border p-4 rounded shadow-sm hover:shadow-lg transition-shadow duration-200 max-w-full"
               >
                 <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : 'fallback-image.jpg'} // Fallback image if no images available
+                  src={product.images && product.images.length > 0 ? product.images[0] : 'fallback-image.jpg'}
                   alt={product.name}
                   className="w-full h-full sm:h-60 md:h-72 lg:h-80 object-cover rounded-t-lg"
                 />
