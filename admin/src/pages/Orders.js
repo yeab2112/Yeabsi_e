@@ -18,7 +18,7 @@ function Orders() {
   useEffect(() => {
     const fetchAllOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/orders/allOrder', {
+        const response = await axios.get('https://ecomm-backend-livid.vercel.app/api/orders/allOrder', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -48,7 +48,7 @@ function Orders() {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/orders/status/${orderId}`,
+        `https://ecomm-backend-livid.vercel.app/api/orders/status/${orderId}`,
         { status: newStatus },
         {
           headers: {

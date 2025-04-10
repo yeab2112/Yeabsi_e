@@ -120,7 +120,7 @@ function Add() {
         if (image) formData.append(`image${index + 1}`, image); 
       });
 
-      const response = await fetch('http://localhost:5000/api/product/add_products', {
+      const response = await fetch('https://ecomm-backend-livid.vercel.app/api/product/add_products', {
         method: 'POST',
         body: formData,
         headers: {
