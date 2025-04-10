@@ -18,7 +18,7 @@ function Cart() {
   const totalWithDelivery = parseFloat((cartTotal + delivery_fee).toFixed(2));
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-6">Shopping Cart</h2>
 
       {cart.length === 0 ? (
@@ -32,29 +32,26 @@ function Cart() {
             {cart.map((item) => (
               <div
                 key={`${item._id}_${item.size}`}
-                className="flex flex-col p-4 border rounded-lg shadow-sm hover:shadow-md transition duration-300"
+                className="flex flex-col sm:flex-row p-4 border rounded-lg shadow-sm hover:shadow-md transition duration-300 gap-4"
               >
-                {/* Product Image and Details */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {/* Product Image */}
-                  <div className="flex justify-center sm:justify-start">
-                    <img
-                      src={item.image || '/placeholder-product.png'}
-                      alt={item.name}
-                      className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border border-gray-200"
-                    />
-                  </div>
+                {/* Product Image */}
+                <div className="flex justify-center sm:justify-start">
+                  <img
+                    src={item.image || '/placeholder-product.png'}
+                    alt={item.name}
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border border-gray-200"
+                  />
+                </div>
 
-                  {/* Product Details */}
-                  <div className="flex-1 space-y-1 text-center sm:text-left">
-                    <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
-                    <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">Size: {item.size}</p>
-                  </div>
+                {/* Product Details */}
+                <div className="flex-1 flex flex-col justify-center text-center sm:text-left">
+                  <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
+                  <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">Size: {item.size}</p>
                 </div>
 
                 {/* Quantity and Remove Controls */}
-                <div className="flex justify-between items-center mt-4 px-2">
+                <div className="flex justify-between sm:justify-end items-center gap-4">
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-3">
                     <button
@@ -89,7 +86,7 @@ function Cart() {
           </div>
 
           {/* Summary Section */}
-          <div className="mt-6 p-4 border rounded-lg shadow-sm bg-gray-50">
+          <div className="mt-6 p-4 sm:p-6 border rounded-lg shadow-sm bg-gray-50">
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-medium">{currency}{cartTotal.toFixed(2)}</span>
@@ -107,7 +104,7 @@ function Cart() {
             </div>
             <button
               onClick={() => navigate('/place-order')}
-              className="w-full mt-4 bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
+              className="w-full mt-4 sm:mt-6 bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
             >
               Proceed to Checkout
             </button>
