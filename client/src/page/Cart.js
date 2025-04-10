@@ -51,7 +51,7 @@ function Cart() {
                 </div>
 
                 {/* Quantity and Remove Controls */}
-                <div className="flex justify-between sm:justify-end items-center gap-4">
+                <div className="flex justify-between sm:justify-center items-center gap-4">
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-3">
                     <button
