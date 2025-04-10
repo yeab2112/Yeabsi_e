@@ -23,7 +23,7 @@ function NewsLeterBox() {
         Stay updated with the latest news, promotions, and exclusive offers
         directly to your inbox.
       </p>
-      <form onSubmit={handleSubmit} className="flex gap-3 items-center">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 items-center">
         <input
           type="email"
           placeholder="Enter your email"
@@ -33,7 +33,7 @@ function NewsLeterBox() {
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition mt-3 sm:mt-0 sm:ml-3"
         >
           Subscribe
         </button>
