@@ -32,26 +32,26 @@ function Cart() {
             {cart.map((item) => (
               <div
                 key={`${item._id}_${item.size}`}
-                className="flex flex-col md:flex-row md:items-center justify-between p-6 border-b rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out space-y-4 md:space-y-0 md:space-x-6"
+                className="flex flex-col items-center p-6 border rounded-lg shadow-md hover:shadow-lg transition duration-300 space-y-4"
               >
                 {/* Product Image */}
                 <img
                   src={item.image || '/placeholder-product.png'}
                   alt={item.name}
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                  className="w-28 h-28 object-cover rounded-lg border border-gray-200"
                 />
 
                 {/* Product Details */}
-                <div className="flex-1 text-center md:text-left">
+                <div className="text-center space-y-1">
                   <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
                   <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">Size: {item.size}</p>
                 </div>
 
-                {/* Quantity + Remove Controls */}
-                <div className="flex flex-col md:flex-row items-center gap-4">
+                {/* Quantity and Remove Controls */}
+                <div className="flex items-center gap-4">
                   {/* Quantity Controls */}
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <button
                       onClick={() => decreaseQuantity(item._id, item.size)}
                       className="bg-gray-300 hover:bg-gray-400 p-2 rounded-full disabled:opacity-50"
@@ -59,7 +59,7 @@ function Cart() {
                     >
                       <FaMinus className="text-gray-700" />
                     </button>
-                    <span className="text-lg font-semibold min-w-[20px] text-center">
+                    <span className="text-lg font-semibold text-center w-6">
                       {item.quantity}
                     </span>
                     <button
@@ -73,7 +73,7 @@ function Cart() {
                   {/* Remove Button */}
                   <button
                     onClick={() => removeFromCart(item._id, item.size)}
-                    className="text-red-600 hover:text-red-800 p-3 rounded-full hover:bg-red-50"
+                    className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50"
                     aria-label="Remove item"
                     title="Remove item"
                   >
