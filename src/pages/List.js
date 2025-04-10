@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { TrashIcon } from '@heroicons/react/outline';
+import 'react-toastify/dist/ReactToastify.css'; 
+import { TrashIcon, PencilIcon } from '@heroicons/react/outline'; 
 
 const List = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null); // State to hold the product being edited
+  const [editFormData, setEditFormData] = useState({ name: '', category: '', price: '' }); // Form data
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const atoken = localStorage.getItem('atoken');
-        if (!atoken) {
-          throw new Error('No authentication token found');
-        }
-
-        const response = await axios.get('http://localhost:5000/api/product/list_products', {
+        const atoken = localStorage.getItem('atoken'); 
+        const response = await axios.get('https://ecomm-backend-livid.vercel.app/api/product/list_products', {
           headers: {
             Authorization: `Bearer ${atoken}`,
           },
@@ -28,11 +24,12 @@ const List = () => {
         if (response.data.success) {
           setProducts(response.data.products);
         } else {
-          throw new Error(response.data.message || 'Failed to fetch products');
+          setError('Failed to fetch products');
+          toast.error('Failed to fetch products');
         }
       } catch (err) {
-        setError(err.message);
-        toast.error(err.message);
+        setError('An error occurred while fetching the products');
+        toast.error('An error occurred while fetching the products');
       } finally {
         setLoading(false);
       }
@@ -41,48 +38,59 @@ const List = () => {
     fetchProducts();
   }, []);
 
+  // Function to handle deleting a product
   const handleDelete = async (productId) => {
     try {
       const atoken = localStorage.getItem('atoken');
-      if (!atoken) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.delete(
-        `http://localhost:5000/api/product/delete_product/${productId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${atoken}`,
-          },
-        }
-      );
+      const response = await axios.delete(`https://ecomm-backend-livid.vercel.app/api/product/delete_product/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${atoken}`,
+        },
+      });
 
       if (response.data.success) {
-        setProducts((prevProducts) => prevProducts.filter((product) => product._id !== productId));
+        setProducts(products.filter((product) => product._id !== productId));
         toast.success('Product deleted successfully');
       } else {
-        throw new Error(response.data.message || 'Failed to delete product');
+        setError('Failed to delete the product');
+        toast.error('Failed to delete the product');
       }
     } catch (err) {
-      console.error('Delete error:', err);
-      toast.error(err.response?.data?.message || err.message);
+      setError('An error occurred while deleting the product');
+      toast.error('An error occurred while deleting the product');
     }
   };
 
-  const openDeleteModal = (productId) => {
-    setProductToDelete(productId);
-    setIsDeleteModalOpen(true);
+  // Handle form changes for the product edit
+  const handleEditChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
 
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setProductToDelete(null);
+  // Open edit form with the current product data
+  const openEditForm = (product) => {
+    setEditingProduct(product);
+    setEditFormData({ name: product.name, category: product.category, price: product.price });
   };
 
-  const confirmDelete = () => {
-    if (productToDelete) {
-      handleDelete(productToDelete);
-      closeDeleteModal();
+  // Submit the edited product
+  const handleEditSubmit = async () => {
+    try {
+      const atoken = localStorage.getItem('atoken');
+      const response = await axios.put(`https://ecomm-backend-livid.vercel.app/api/product/update_product/${editingProduct._id}`, editFormData, {
+        headers: {
+          Authorization: `Bearer ${atoken}`,
+        },
+      });
+
+      if (response.data.success) {
+        setProducts(products.map((product) => (product._id === editingProduct._id ? { ...product, ...editFormData } : product)));
+        toast.success('Product updated successfully');
+        setEditingProduct(null); // Close the edit form
+      } else {
+        toast.error('Failed to update product');
+      }
+    } catch (err) {
+      toast.error('An error occurred while updating the product');
     }
   };
 
@@ -98,6 +106,7 @@ const List = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold text-center mb-6">Product List</h1>
 
+      {/* Product List */}
       <div className="grid grid-cols-6 gap-4 mb-4 border-b-4 pb-2">
         <span className="font-semibold text-center">Image</span>
         <span className="font-semibold text-center">Name</span>
@@ -106,53 +115,85 @@ const List = () => {
         <span className="font-semibold text-center">Action</span>
       </div>
 
-      {/* Scrollable Product List */}
-      <div className="overflow-y-auto h-[60vh]">
-        {products.length === 0 ? (
-          <div className="text-center text-lg text-gray-500">No products available</div>
-        ) : (
-          products.map((product) => (
-            <div key={product._id} className="grid grid-cols-6 gap-4 py-4 border-b">
-              <img
-                src={product.images[0] || '/placeholder-image.jpg'}
-                alt={product.name}
-                className="w-16 h-16 object-cover rounded-md mx-auto"
-                onError={(e) => {
-                  e.target.src = '/placeholder-image.jpg';
-                }}
+      {products.length === 0 ? (
+        <div className="text-center text-lg text-gray-500">No products available</div>
+      ) : (
+        products.map((product) => (
+          <div key={product._id} className="grid grid-cols-6 gap-4 py-4 border-b">
+            <img
+              src={product.images[0]} // Display the first image
+              alt={product.name}
+              className="w-16 h-16 object-cover rounded-md mx-auto"
+            />
+            <span className="text-center">{product.name}</span>
+            <span className="text-center">{product.category}</span>
+            <span className="text-center">${product.price}</span>
+            <div className="flex justify-center">
+              {/* Edit button */}
+              <PencilIcon
+                onClick={() => openEditForm(product)}
+                className="w-6 h-6 text-blue-500 cursor-pointer hover:text-blue-600"
               />
-              <span className="text-center">{product.name}</span>
-              <span className="text-center">{product.category}</span>
-              <span className="text-center">${product.price}</span>
-              <div className="flex justify-center">
-                <TrashIcon
-                  onClick={() => openDeleteModal(product._id)}
-                  className="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600"
-                />
-              </div>
+              {/* Delete button */}
+              <TrashIcon
+                onClick={() => handleDelete(product._id)}
+                className="w-6 h-6 text-red-500 cursor-pointer hover:text-red-600"
+              />
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        ))
+      )}
 
-      {/* Delete Confirmation Modal (without @headlessui/react) */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-xl">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Confirm Deletion</h2>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
-            <div className="flex justify-end space-x-3">
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-semibold">Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={editFormData.name}
+                onChange={handleEditChange}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="category" className="block text-sm font-semibold">Category</label>
+              <input
+                type="text"
+                id="category"
+                name="category"
+                value={editFormData.category}
+                onChange={handleEditChange}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="price" className="block text-sm font-semibold">Price</label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value={editFormData.price}
+                onChange={handleEditChange}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="flex justify-end">
               <button
-                onClick={closeDeleteModal}
-                className="bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 rounded-md transition-colors"
+                onClick={handleEditSubmit}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
               >
-                Cancel
+                Save
               </button>
               <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+                onClick={() => setEditingProduct(null)}
+                className="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
               >
-                Delete
+                Cancel
               </button>
             </div>
           </div>

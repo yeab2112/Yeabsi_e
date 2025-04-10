@@ -1,4 +1,3 @@
-
 import admin from './admin.png';
 
 import addicon from './addicon.png';
