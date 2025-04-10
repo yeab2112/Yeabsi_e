@@ -149,16 +149,16 @@ function PlaceOrder() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-md">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-white shadow-lg rounded-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Place Your Order</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column: Delivery Information */}
         <div className="p-4 border rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Delivery Information</h2>
           <div className="space-y-4">
             {/* First Name and Last Name Side by Side */}
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <input
                 type="text"
                 name="firstName"
@@ -206,7 +206,7 @@ function PlaceOrder() {
             </div>
 
             {/* City and State Side by Side */}
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <input
                 type="text"
                 name="city"
@@ -228,7 +228,7 @@ function PlaceOrder() {
             </div>
 
             {/* Zip Code and Country Side by Side */}
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <input
                 type="text"
                 name="zipCode"
@@ -272,40 +272,44 @@ function PlaceOrder() {
           <div className="space-y-4 mb-6">
             {cart.map((item, index) => (
               <div key={index} className="flex justify-between mb-2">
-                <span>{item.name} (Size: {item.size}, Qty: {item.quantity})</span>
-                <span>{currency}{(item.price * item.quantity).toFixed(2)}</span>
+                <span className="whitespace-nowrap">{item.name} (Size: {item.size}, Qty: {item.quantity})</span>
+                <span className="whitespace-nowrap">{currency}{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
 
           {/* Total Price */}
           <div className="flex justify-between font-semibold text-lg">
-            <span>Subtotal</span>
-            <span>{currency}{totalPrice.toFixed(2)}</span>
+            <span className="whitespace-nowrap">Subtotal</span>
+            <span className="whitespace-nowrap">{currency}{totalPrice.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg">
-            <span>Delivery Fee</span>
-            <span>{currency}{delivery_fee.toFixed(2)}</span>
+            <span className="whitespace-nowrap">Delivery Fee</span>
+            <span className="whitespace-nowrap">{currency}{delivery_fee.toFixed(2)}</span>
           </div>
           <hr className="my-2" />
           <div className="flex justify-between font-semibold text-xl">
-            <span>Total</span>
-            <span>{currency}{finalTotal.toFixed(2)}</span>
+            <span className="whitespace-nowrap">Total</span>
+            <span className="whitespace-nowrap">{currency}{finalTotal.toFixed(2)}</span>
           </div>
 
           {/* Payment Method Selection */}
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-2">Select Payment Method</h2>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => setPaymentMethod('Cash on Delivery')}
-                className={`w-1/2 p-2 rounded-md text-white ${paymentMethod === 'Cash on Delivery' ? 'bg-green-500' : 'bg-gray-500'}`}
+                className={`w-full sm:w-1/2 p-2 rounded-md text-white whitespace-nowrap ${
+                  paymentMethod === 'Cash on Delivery' ? 'bg-green-500' : 'bg-gray-500'
+                }`}
               >
                 Cash on Delivery
               </button>
               <button
                 onClick={() => setPaymentMethod('Online Payment')}
-                className={`w-1/2 p-2 rounded-md text-white ${paymentMethod === 'Online Payment' ? 'bg-green-500' : 'bg-gray-500'}`}
+                className={`w-full sm:w-1/2 p-2 rounded-md text-white whitespace-nowrap ${
+                  paymentMethod === 'Online Payment' ? 'bg-green-500' : 'bg-gray-500'
+                }`}
               >
                 Online Payment
               </button>
@@ -318,17 +322,17 @@ function PlaceOrder() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-between mt-6">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 mt-6">
             <button
               onClick={() => navigate('/cart')}
-              className="bg-gray-500 text-white p-2 rounded-md w-1/3"
+              className="bg-gray-500 text-white p-2 rounded-md w-full sm:w-1/3 whitespace-nowrap"
             >
               Go Back
             </button>
             <button
               onClick={handleOrderConfirmation}
               disabled={isSubmitting || isProcessingPayment}
-              className={`bg-blue-500 text-white p-2 rounded-md w-1/3 ${
+              className={`bg-blue-500 text-white p-2 rounded-md w-full sm:w-2/3 whitespace-nowrap ${
                 isSubmitting || isProcessingPayment ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
