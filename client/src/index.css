@@ -1,0 +1,20 @@
+/* Tailwind directives MUST come first */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles using @apply */
+.nav-link {
+  hr {
+    @apply hidden;
+    
+    &.active {
+      @apply block border-b-2 border-blue-500;
+    }
+  }
+}
+
+/* Pure CSS rules (no Tailwind directives) */
+::-webkit-scrollbar {
+  display: none;
+}
