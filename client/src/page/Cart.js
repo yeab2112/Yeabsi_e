@@ -53,7 +53,7 @@ function Cart() {
                 {/* Quantity and Remove Controls */}
                 <div className="flex justify-between sm:justify-center items-center gap-4">
                   {/* Quantity Controls */}
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center sm:justify-center space-x-3">
                     <button
                       onClick={() => decreaseQuantity(item._id, item.size)}
                       className="bg-gray-200 hover:bg-gray-300 p-2 rounded-full disabled:opacity-50"
