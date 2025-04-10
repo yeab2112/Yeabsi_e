@@ -23,17 +23,17 @@ function NewsLeterBox() {
         Stay updated with the latest news, promotions, and exclusive offers
         directly to your inbox.
       </p>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 items-center">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
           type="email"
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="flex-grow p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition mt-3 sm:mt-0 sm:ml-3"
+          className="w-full bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
         >
           Subscribe
         </button>
