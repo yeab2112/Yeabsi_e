@@ -32,24 +32,26 @@ function Cart() {
             {cart.map((item) => (
               <div
                 key={`${item._id}_${item.size}`}
-                className="flex flex-col items-center p-6 border rounded-lg shadow-md hover:shadow-lg transition duration-300 space-y-4"
+                className="flex flex-col items-center p-6 border rounded-lg shadow-md hover:shadow-lg transition duration-300 space-y-4 text-center sm:text-left sm:items-start"
               >
                 {/* Product Image */}
-                <img
-                  src={item.image || '/placeholder-product.png'}
-                  alt={item.name}
-                  className="w-28 h-28 object-cover rounded-lg border border-gray-200"
-                />
+                <div className="w-full flex justify-center sm:justify-start">
+                  <img
+                    src={item.image || '/placeholder-product.png'}
+                    alt={item.name}
+                    className="w-28 h-28 object-cover rounded-lg border border-gray-200"
+                  />
+                </div>
 
                 {/* Product Details */}
-                <div className="text-center space-y-1">
+                <div className="w-full px-2 space-y-1">
                   <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
                   <p className="text-gray-600">{currency}{item.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">Size: {item.size}</p>
                 </div>
 
-                {/* Quantity and Remove Controls */}
-                <div className="flex items-center gap-4">
+                {/* Quantity and Remove Controls - same row */}
+                <div className="w-full flex justify-center sm:justify-start items-center gap-4 pt-2">
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-3">
                     <button
@@ -70,7 +72,7 @@ function Cart() {
                     </button>
                   </div>
 
-                  {/* Remove Button */}
+                  {/* Remove Button in same row */}
                   <button
                     onClick={() => removeFromCart(item._id, item.size)}
                     className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50"
